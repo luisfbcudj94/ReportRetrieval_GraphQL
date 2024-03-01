@@ -6,4 +6,17 @@
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="HotChocolate" Version="13.9.0" />
+    <PackageReference Include="HotChocolate.AspNetCore" Version="13.9.0" />
+    <PackageReference Include="HotChocolate.AspNetCore.Playground" Version="10.5.5" />
+    <PackageReference Include="HotChocolate.Data" Version="13.9.0" />
+    <PackageReference Include="HotChocolate.Types" Version="13.9.0" />
+    <PackageReference Include="HotChocolate.Types.Filters" Version="13.9.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="DataManager\AutoMapper\" />
+  </ItemGroup>
+
 </Project>

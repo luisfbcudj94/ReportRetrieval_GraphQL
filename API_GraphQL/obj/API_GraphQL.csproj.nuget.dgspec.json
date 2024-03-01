@@ -39,6 +39,32 @@
       "frameworks": {
         "net8.0": {
           "targetAlias": "net8.0",
+          "dependencies": {
+            "HotChocolate": {
+              "target": "Package",
+              "version": "[13.9.0, )"
+            },
+            "HotChocolate.AspNetCore": {
+              "target": "Package",
+              "version": "[13.9.0, )"
+            },
+            "HotChocolate.AspNetCore.Playground": {
+              "target": "Package",
+              "version": "[10.5.5, )"
+            },
+            "HotChocolate.Data": {
+              "target": "Package",
+              "version": "[13.9.0, )"
+            },
+            "HotChocolate.Types": {
+              "target": "Package",
+              "version": "[13.9.0, )"
+            },
+            "HotChocolate.Types.Filters": {
+              "target": "Package",
+              "version": "[13.9.0, )"
+            }
+          },
           "imports": [
             "net461",
             "net462",
