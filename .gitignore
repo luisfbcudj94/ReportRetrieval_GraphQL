@@ -363,3 +363,5 @@ MigrationBackup/
 API_GraphQL/obj/Debug/net8.0/API_GraphQL.AssemblyInfoInputs.cache
 API_GraphQL/obj/Debug/net8.0/API_GraphQL.AssemblyInfo.cs
 API_GraphQL/.vs/API_GraphQL/v17/.suo
+API_GraphQL/.vs/API_GraphQL/DesignTimeBuild/.dtbcache.v2
+API_GraphQL/.vs/API_GraphQL/v17/.suo
