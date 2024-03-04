@@ -1,8 +1,12 @@
-﻿using API_GraphQL.Domain.Models;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
-namespace API_GraphQL.DataManager.Paging
+namespace Client_GraphQL.Models
 {
-    public class PaginatedList
+    public  class PaginatedList
     {
         public int Count { get; set; }
         public bool? PayloadComplete { get; set; }
