@@ -10,8 +10,10 @@ builder.Services.AddSingleton<ICommissionsGenerator, CommissionsGenerator>();
 builder.Services.AddSingleton<ICommisionsService, CommisionsService>();
 
 builder.Services.AddGraphQLServer()
-    .AddQueryType<Query>();
-//.AddType<CommissionType>();
+    .AddQueryType<Query>()
+    .AddType<CommissionType>()
+    ;
+
 
 builder.Services.AddCors(options =>
 {
@@ -26,16 +28,6 @@ var app = builder.Build();
 
 app.UseRouting();
 
-//app.UsePlayground(new PlaygroundOptions
-//{
-//    QueryPath = "/api",
-//    Path = "/playground"
-//});
-
-//app.MapGet("/", async context =>
-//{
-//    await context.Response.WriteAsync("Hello World!");
-//});
 app.UseCors("MyCors");
 
 app.MapGraphQL();
