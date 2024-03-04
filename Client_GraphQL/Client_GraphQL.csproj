@@ -8,6 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="CsvHelper" Version="31.0.2" />
     <PackageReference Include="GraphQL.Client" Version="6.0.2" />
     <PackageReference Include="GraphQL.Client.Abstractions" Version="6.0.2" />
     <PackageReference Include="GraphQL.Client.Abstractions.Websocket" Version="6.0.2" />

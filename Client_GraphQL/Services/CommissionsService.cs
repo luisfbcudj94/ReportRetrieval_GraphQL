@@ -20,6 +20,7 @@ namespace Client_GraphQL.Services
         public async Task RequestAllDataAsync()
         {
             GraphQLClient _graphQLClient = new GraphQLClient();
+            CSVService _csvService = new CSVService();
 
             string? sinceId = Guid.Empty.ToString();
 
@@ -56,6 +57,9 @@ namespace Client_GraphQL.Services
                 var response = await _graphQLClient.SendQueryAsync<dynamic>(query);
                 var payloadComplete = response.publisherCommissions.payloadComplete.Value;
                 var maxId = response.publisherCommissions.maxId.Value;
+                List<Commissions> dataToExport = response.publisherCommissions.records.ToObject<List<Commissions>>();
+
+                _csvService.ExportData(dataToExport);
 
                 if (payloadComplete)
                 {
