@@ -66,7 +66,7 @@ namespace API_GraphQL.Application.Services
                 data = data.Where(p => p.EventDate >= startDate && p.EventDate <= endDate).ToList();
             }
 
-            if (sinceId != null)
+            if (sinceId != null && sinceId != Guid.Empty)
             {
                 positionSinceId = data.FindIndex(p => p.CommissionId == sinceId);
                 if (positionSinceId != -1)

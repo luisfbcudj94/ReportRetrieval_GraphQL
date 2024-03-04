@@ -1,4 +1,5 @@
 ﻿using Client_GraphQL.Models;
+using GraphQL;
 using GraphQL.Client.Abstractions;
 using GraphQL.Client.Http;
 using GraphQL.Client.Serializer.Newtonsoft;
@@ -13,22 +14,18 @@ namespace Client_GraphQL.Client
 {
     public class GraphQLClient
     {
-        private readonly GraphQLHttpClient _client;
-        private GraphQLHttpClient graphqlHttpClient = new GraphQLHttpClient("https://localhost:7012/graphql", new NewtonsoftJsonSerializer());
-
         private GraphQLHttpClient graphQLClient = new GraphQLHttpClient("https://localhost:7012/graphql", new NewtonsoftJsonSerializer());
 
 
         public GraphQLClient()
         {
-            
         }
 
         public async Task<PaginatedList> SendQueryAsync<PaginatedList>(string query)
         {
             try
             {
-                var response = await graphQLClient.SendQueryAsync<PaginatedList>(query);
+                var response = await graphQLClient.SendQueryAsync<dynamic>(query);
 
                 if (response.Errors != null)
                 {
@@ -40,7 +37,6 @@ namespace Client_GraphQL.Client
                 else
                 {
                     var data = response.Data;
-                    Console.WriteLine($"Response data: {data}");
                 }
 
                 return response.Data;
