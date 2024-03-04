@@ -1,19 +1,43 @@
 ﻿using API_GraphQL.Application.Interfaces;
+using API_GraphQL.DataManager.Paging;
 using API_GraphQL.Domain.Models;
 
 namespace API_GraphQL.GraphQL
 {
+    /// <summary>
+    /// Class defining available queries in the GraphQL API.
+    /// </summary>
     public class Query
     {
         private readonly ICommisionsService _commisionsService;
 
+        /// <summary>
+        /// Constructor of the Query class.
+        /// </summary>
+        /// <param name="commisionsService">Commission service for querying.</param>
         public Query(ICommisionsService commisionsService)
         {
             _commisionsService = commisionsService;
         }
 
-        //[UsePaging(typeof(CommissionType))]
-        //[HotChocolate.Data.UseFiltering]
-        public IQueryable<Commissions> Comissions => _commisionsService.GetCommissions();
+        /// <summary>
+        /// Query to retrieve all available commissions.
+        /// </summary>
+        public IQueryable<Commissions> Commissions => _commisionsService.GetCommissions();
+
+        /// <summary>
+        /// Query to retrieve paginated and filtered commissions of a publisher.
+        /// </summary>
+        /// <param name="sinceId">ID of commission from which to retrieve.</param>
+        /// <param name="startDate">Start date of the date range to filter.</param>
+        /// <param name="endDate">End date of the date range to filter.</param>
+        /// <returns>A paginated list of publisher commissions.</returns>
+        public PaginatedList PublisherCommissions(Guid? sinceId = null, DateTime? startDate = null, DateTime? endDate = null)
+        {
+            var response = _commisionsService.GetCommissionsPaginated(sinceId, startDate, endDate);
+
+            return response;
+        }
+
     }
 }

@@ -2,7 +2,7 @@
 {
     public class Commissions
     {
-        public string CommissionId { get; set; }
+        public Guid CommissionId { get; set; }
         public string AdvertiserName { get; set; }
         public string ActionType { get; set; }
         public decimal SaleAmountUsd { get; set; }
@@ -13,7 +13,7 @@
         public string Aid { get; set; }
         public DateTime PostingDate { get; set; }
         public DateTime EventDate { get; set; }
-        public string OrderId { get; set; }
+        public Guid OrderId { get; set; }
         public string Coupon { get; set; }
         public bool IsCrossDevice { get; set; }
     }

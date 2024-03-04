@@ -3,8 +3,16 @@ using API_GraphQL.Domain.Models;
 
 namespace API_GraphQL.Application.Services
 {
+    /// <summary>
+    /// Service class responsible for generating mock commission data.
+    /// </summary>
     public class CommissionsGenerator: ICommissionsGenerator
     {
+        /// <summary>
+        /// Generates a list of mock commissions.
+        /// </summary>
+        /// <param name="numberOfCommissions">The number of commissions to generate.</param>
+        /// <returns>A list of mock commissions.</returns>
         public List<Commissions> GenerateCommissionsList(int numberOfCommissions)
         {
             var commissionsList = new List<Commissions>();
@@ -13,7 +21,7 @@ namespace API_GraphQL.Application.Services
             {
                 commissionsList.Add(new Commissions
                 {
-                    CommissionId = Guid.NewGuid().ToString(),
+                    CommissionId = Guid.NewGuid(),
                     AdvertiserName = "Advertiser" + i,
                     ActionType = i % 2 == 0 ? "Sale" : "Lead",
                     SaleAmountUsd = GenerateRandomDecimal(10, 1000),
@@ -22,11 +30,11 @@ namespace API_GraphQL.Application.Services
                     ActionTrackerName = "ActionTracker" + i,
                     WebsiteName = "Website" + i,
                     Aid = "AID" + i,
-                    PostingDate = DateTime.UtcNow.AddDays(-i),
-                    EventDate = DateTime.UtcNow.AddDays(-i),
-                    OrderId = "Order" + i,
+                    PostingDate = DateTime.UtcNow,
+                    EventDate = DateTime.UtcNow.AddDays(GenerateRandomInt(i,i+5)),
+                    OrderId =  Guid.NewGuid(),
                     Coupon = "Coupon" + i,
-                    IsCrossDevice = i % 2 == 0
+                    IsCrossDevice = GenerateRandomInt(i, i + 5) % 2 == 0
                 });
             }
 
@@ -38,5 +46,11 @@ namespace API_GraphQL.Application.Services
             Random random = new Random();
             return Math.Round((decimal)(min + (random.NextDouble() * (max - min))), 2);
         }
+        private int GenerateRandomInt(int min, int max)
+        {
+            Random random = new Random();
+            return random.Next(min, max + 1);
+        }
+
     }
 }

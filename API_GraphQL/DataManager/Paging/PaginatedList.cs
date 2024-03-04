@@ -1,10 +1,15 @@
-﻿namespace API_GraphQL.DataManager.Paging
+﻿using API_GraphQL.Domain.Models;
+
+namespace API_GraphQL.DataManager.Paging
 {
-    public class PaginatedList<T>
+    public class PaginatedList
     {
-        public int Count{ get; set; }
-        public bool PayloadComplete { get; set; }
-        public int MaxId { get; set; }
-        public List<T>? Records { get; set; }
+        //public int Count => Records.Count;
+        public int Count { get; set; }
+        //public bool PayloadComplete => Records[Count - 1].CommissionId == MaxId;
+        public bool? PayloadComplete { get; set; }
+        //public Guid MaxId => Records[Count - 1].CommissionId;
+        public Guid? MaxId { get; set; }
+        public List<Commissions> Records { get; set; }
     }
 }
