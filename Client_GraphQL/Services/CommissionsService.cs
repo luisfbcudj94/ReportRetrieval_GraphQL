@@ -17,20 +17,24 @@ namespace Client_GraphQL.Services
        
         }
 
-        public async Task RequestAllDataAsync()
+        public async Task RequestAllDataAsync(DateTime start_date, DateTime end_date)
         {
-            GraphQLClient _graphQLClient = new GraphQLClient();
-            CSVService _csvService = new CSVService();
-
-            string? sinceId = Guid.Empty.ToString();
-
-            var isCompleted = false;
-            while (!isCompleted)
+            try
             {
-                var query = @"
+                GraphQLClient _graphQLClient = new GraphQLClient();
+                CSVService _csvService = new CSVService();
+
+                string? sinceId = Guid.Empty.ToString();
+
+                var isCompleted = false;
+                while (!isCompleted)
+                {
+                    var query = @"
                     query {
                       publisherCommissions(
-                        sinceId: """ + sinceId + @""") {
+                        sinceId: """ + sinceId + @""",
+                        startDate: """ + start_date + @""",
+                        endDate: """ + end_date + @""") {
                         count
                         payloadComplete
                         maxId
@@ -54,24 +58,30 @@ namespace Client_GraphQL.Services
                     }
                 ";
 
-                var response = await _graphQLClient.SendQueryAsync<dynamic>(query);
-                var payloadComplete = response.publisherCommissions.payloadComplete.Value;
-                var maxId = response.publisherCommissions.maxId.Value;
-                List<Commissions> dataToExport = response.publisherCommissions.records.ToObject<List<Commissions>>();
+                    var response = await _graphQLClient.SendQueryAsync<dynamic>(query);
+                    var payloadComplete = response.publisherCommissions.payloadComplete.Value;
+                    var maxId = response.publisherCommissions.maxId.Value;
+                    List<Commissions> dataToExport = response.publisherCommissions.records.ToObject<List<Commissions>>();
 
-                _csvService.ExportData(dataToExport);
+                    _csvService.ExportData(dataToExport);
 
-                if (payloadComplete)
-                {
-                    isCompleted = true;
+                    if (payloadComplete)
+                    {
+                        isCompleted = true;
+                    }
+                    else
+                    {
+                        sinceId = maxId;
+                    }
+
+                    Console.WriteLine($"Exporting data: from \n {response.publisherCommissions.records[0]} \n to \n {response.publisherCommissions.records[response.publisherCommissions.records.Count - 1]} \n");
                 }
-                else
-                {
-                    sinceId = maxId;
-                }
-
-                Console.WriteLine($"Exporting data: from \n {response.publisherCommissions.records[0]} \n to \n {response.publisherCommissions.records[response.publisherCommissions.records.Count - 1]} \n");
             }
+            catch (Exception ex)
+            {
+                throw;
+            }
+
         } 
     }
 }

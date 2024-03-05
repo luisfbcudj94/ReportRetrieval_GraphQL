@@ -1,5 +1,6 @@
 ﻿using API_GraphQL.Application.Interfaces;
 using API_GraphQL.Domain.Models;
+using Microsoft.AspNetCore.Mvc.Diagnostics;
 
 namespace API_GraphQL.Application.Services
 {
@@ -31,7 +32,8 @@ namespace API_GraphQL.Application.Services
                     WebsiteName = "Website" + i,
                     Aid = "AID" + i,
                     PostingDate = DateTime.UtcNow,
-                    EventDate = DateTime.UtcNow.AddDays(GenerateRandomInt(i,i+5)),
+                    //EventDate = DateTime.UtcNow.AddDays(GenerateRandomInt(i,i+5)),
+                    EventDate = new DateTime(2024, 2, 27),
                     OrderId =  Guid.NewGuid(),
                     Coupon = "Coupon" + i,
                     IsCrossDevice = GenerateRandomInt(i, i + 5) % 2 == 0

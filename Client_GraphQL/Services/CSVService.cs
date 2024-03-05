@@ -42,7 +42,7 @@ namespace Client_GraphQL.Services
                 csv.WriteRecords(existingData);
             }
 
-            Console.WriteLine("Datos guardados en el archivo CSV.");
+            Console.WriteLine("Data saved in the CSV file.");
         }
     }
 }

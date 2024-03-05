@@ -10,13 +10,34 @@ Console.WriteLine("Please enter the corresponding number for what you want to do
 
 string input = Console.ReadLine();
 
+Console.WriteLine("Please enter the day of the start date.");
+int day_startDate = Convert.ToInt16(Console.ReadLine());
+
+Console.WriteLine("Please enter the month of the start date.");
+int month_startDate = Convert.ToInt16(Console.ReadLine());
+
+Console.WriteLine("Please enter the year of the start date.");
+int year_startDate = Convert.ToInt16(Console.ReadLine());
+
+Console.WriteLine("Please enter the day of the end date.");
+int day_endDate = Convert.ToInt16(Console.ReadLine());
+
+Console.WriteLine("Please enter the month of the end date.");
+int month_endDate = Convert.ToInt16(Console.ReadLine());
+
+Console.WriteLine("Please enter the year of the end date.");
+int year_endDate = Convert.ToInt16(Console.ReadLine());
+
+DateTime start_date = new DateTime(year_startDate, month_startDate, day_startDate);
+DateTime end_date = new DateTime(year_endDate, month_endDate, day_endDate);
+
 if (int.TryParse(input, out int number))
 {
     
     switch (number)
     {
         case 1:
-            await commissionsService.RequestAllDataAsync();
+            await commissionsService.RequestAllDataAsync(start_date, end_date);
             Console.WriteLine("One");
             break;
         case 2:

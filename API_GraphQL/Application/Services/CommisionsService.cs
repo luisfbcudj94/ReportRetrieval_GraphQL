@@ -52,19 +52,21 @@ namespace API_GraphQL.Application.Services
         /// <param name="startDate">Start date of the date range to filter.</param>
         /// <param name="endDate">End date of the date range to filter.</param>
         /// <returns>A paginated list of commissions.</returns>
-        public PaginatedList GetCommissionsPaginated(Guid? sinceId = null, DateTime? startDate = null, DateTime? endDate = null)
+        public PaginatedList GetCommissionsPaginated(DateTime startDate, DateTime endDate, Guid? sinceId = null)
         {
 
             var data = _commissions_Paginated.Records;
             var pageSize = _pageSize;
             var pageNumber = _pageNumber;
 
-            int positionSinceId;
+            
 
             if (startDate != null && endDate != null)
             {
                 data = data.Where(p => p.EventDate >= startDate && p.EventDate <= endDate).ToList();
             }
+
+            int positionSinceId;
 
             if (sinceId != null && sinceId != Guid.Empty)
             {
