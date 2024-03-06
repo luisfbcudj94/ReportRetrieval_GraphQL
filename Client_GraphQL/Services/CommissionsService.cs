@@ -1,5 +1,6 @@
 ﻿using Client_GraphQL.Client;
 using Client_GraphQL.Models;
+using GraphQL;
 using GraphQL.Client.Abstractions;
 using System;
 using System.Collections.Generic;
@@ -19,6 +20,7 @@ namespace Client_GraphQL.Services
 
         public async Task RequestAllDataAsync(DateTime start_date, DateTime end_date)
         {
+            var numberOfRequest = 0;
             try
             {
                 GraphQLClient _graphQLClient = new GraphQLClient();
@@ -29,39 +31,44 @@ namespace Client_GraphQL.Services
                 var isCompleted = false;
                 while (!isCompleted)
                 {
-                    var query = @"
-                    query {
-                      publisherCommissions(
-                        sinceId: """ + sinceId + @""",
-                        startDate: """ + start_date + @""",
-                        endDate: """ + end_date + @""") {
-                        count
-                        payloadComplete
-                        maxId
-                        records {
-                          commissionId
-                          advertiserName
-                          actionType
-                          saleAmountUsd
-                          orderDiscountUsd
-                          pubCommissionAmountUsd
-                          actionTrackerName
-                          websiteName
-                          aid
-                          postingDate
-                          eventDate
-                          orderId
-                          coupon
-                          isCrossDevice
-                        }
-                      }
-                    }
-                ";
-
+                    var query = $@"
+                    {{
+                        publisherCommissions(
+                            sinceId: ""{sinceId}""
+                            startDate: ""{start_date.ToString("yyyy-MM-dd")}""
+                            endDate: ""{end_date.ToString("yyyy-MM-dd")}""
+                        ) {{
+                            count
+                            payloadComplete
+                            maxId
+                            records {{
+                                commissionId
+                                advertiserName
+                                actionType
+                                saleAmountUsd
+                                orderDiscountUsd
+                                pubCommissionAmountUsd
+                                actionTrackerName
+                                websiteName
+                                aid
+                                postingDate
+                                eventDate
+                                orderId
+                                coupon
+                                isCrossDevice
+                            }}
+                        }}
+                    }}
+                    ";
+                    numberOfRequest += 1;
+                    Console.WriteLine("Making request number: " + numberOfRequest);
                     var response = await _graphQLClient.SendQueryAsync<dynamic>(query);
+                    Console.WriteLine("Successfully completed request number: " + numberOfRequest);
                     var payloadComplete = response.publisherCommissions.payloadComplete.Value;
                     var maxId = response.publisherCommissions.maxId.Value;
                     List<Commissions> dataToExport = response.publisherCommissions.records.ToObject<List<Commissions>>();
+
+                    Console.WriteLine($"Exporting data: from \n {response.publisherCommissions.records[0]} \n to \n {response.publisherCommissions.records[response.publisherCommissions.records.Count - 1]} \n");
 
                     _csvService.ExportData(dataToExport);
 
@@ -74,7 +81,7 @@ namespace Client_GraphQL.Services
                         sinceId = maxId;
                     }
 
-                    Console.WriteLine($"Exporting data: from \n {response.publisherCommissions.records[0]} \n to \n {response.publisherCommissions.records[response.publisherCommissions.records.Count - 1]} \n");
+                    
                 }
             }
             catch (Exception ex)
