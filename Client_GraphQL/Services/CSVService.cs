@@ -21,8 +21,15 @@ namespace Client_GraphQL.Services
         {
             try 
             {
+
                 string directoryPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-                string filePath = Path.Combine(directoryPath, $"files/publisherCommissions.csv");
+                string filesDirectory = Path.Combine(directoryPath, "files");
+                if (!Directory.Exists(filesDirectory))
+                {
+                    Directory.CreateDirectory(filesDirectory);
+                }
+
+                string filePath = Path.Combine(filesDirectory, $"publisherCommissions.csv");
 
                 List<Commissions> existingData = new List<Commissions>();
 
