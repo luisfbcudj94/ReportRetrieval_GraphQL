@@ -19,30 +19,38 @@ namespace Client_GraphQL.Services
 
         public void ExportData(List<Commissions> newData)
         {
-            string directoryPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-            string filePath = Path.Combine(directoryPath, $"files/publisherCommissions.csv");
-
-            List<Commissions> existingData = new List<Commissions>();
-
-            if (File.Exists(filePath))
+            try 
             {
-                
-                using (var reader = new StreamReader(filePath))
-                using (var csv = new CsvReader(reader, CultureInfo.InvariantCulture))
+                string directoryPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+                string filePath = Path.Combine(directoryPath, $"files/publisherCommissions.csv");
+
+                List<Commissions> existingData = new List<Commissions>();
+
+                if (File.Exists(filePath))
                 {
-                    existingData = csv.GetRecords<Commissions>().ToList();
+
+                    using (var reader = new StreamReader(filePath))
+                    using (var csv = new CsvReader(reader, CultureInfo.InvariantCulture))
+                    {
+                        existingData = csv.GetRecords<Commissions>().ToList();
+                    }
                 }
-            }
 
-            existingData.AddRange(newData);
+                existingData.AddRange(newData);
 
-            using (var writer = new StreamWriter(filePath))
-            using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
+                using (var writer = new StreamWriter(filePath))
+                using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
+                {
+                    csv.WriteRecords(existingData);
+                }
+
+                Console.WriteLine("Data saved in the CSV file.");
+                Console.WriteLine("File path: "+ filePath);
+            } catch (Exception ex) 
             {
-                csv.WriteRecords(existingData);
+                throw;
             }
 
-            Console.WriteLine("Data saved in the CSV file.");
         }
     }
 }
