@@ -95,6 +95,10 @@ code {
     margin-top: 50px;
 }
 
+.sidebar h2 {
+    color: #007bff;
+}
+
 .sidebar ul {
     list-style: none;
     padding: 0;
@@ -119,11 +123,42 @@ code {
 }
 
 .content {
-    margin-left: 250px; /* Width of the sidebar */
+    margin-left: 250px;
     padding: 20px;
 }
 
-.content {
-    margin-left: 250px;
-    padding: 20px;
+.content-dashboard {
+    display: grid;
+    border: 1px solid red;
+    grid-template-columns: 50% 50%;
+}
+
+.content-dashboard .container-chart LineChart {
+    width: 100%
+}
+
+.table {
+    width: 80% !important;
+    margin: auto;
+    margin-top: 50px;
+    box-shadow: 0px 0px 6px 0px rgba(0,0,0,0.44);
+}
+
+.title-table {
+    width: 80% !important;
+    margin: auto;
+    margin-top: 20px;
+}
+
+.container-pagination {
+    width: 80% !important;
+    margin: auto;
+    margin-top: 10px;
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 80px;
+}
+
+.container-pagination .pagination .btn {
+    margin-right: 8px;
 }
