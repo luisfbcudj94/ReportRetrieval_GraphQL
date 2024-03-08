@@ -59,12 +59,12 @@ namespace API_GraphQL.Application.Services
             var pageSize = _pageSize;
             var pageNumber = _pageNumber;
 
-            if (sincePostingDate < DateTime.Today.AddYears(-20) || sincePostingDate > DateTime.Today)
+            if (sincePostingDate < DateTime.Today.AddYears(-20))
             {
                 throw new ArgumentException("sincePostingDate must be within the range of 20 years ago to today.");
             }
 
-            if (beforePostingDate < DateTime.Today.AddYears(-20) || beforePostingDate > DateTime.Today)
+            if (beforePostingDate < DateTime.Today.AddYears(-20))
             {
                 throw new ArgumentException("beforePostingDate must be within the range from today minus 20 years to today plus 20 years.");
             }
@@ -72,7 +72,7 @@ namespace API_GraphQL.Application.Services
 
             if (sincePostingDate != null && beforePostingDate != null)
             {
-                data = data.Where(p => p.PostingDate >= sincePostingDate && p.EventDate <= beforePostingDate).ToList();
+                data = data.Where(p => p.PostingDate >= sincePostingDate && p.PostingDate <= beforePostingDate).ToList();
             }
 
             int positionSinceId;

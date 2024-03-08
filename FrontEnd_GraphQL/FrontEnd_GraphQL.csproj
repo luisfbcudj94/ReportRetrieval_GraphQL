@@ -13,6 +13,13 @@
     <PackageReference Include="Blazorise.Icons.FontAwesome" Version="1.4.2" />
     <PackageReference Include="BootstrapBlazor" Version="8.3.1" />
     <PackageReference Include="CurrieTechnologies.Razor.SweetAlert2" Version="5.5.0" />
+    <PackageReference Include="GraphQL.Client" Version="6.0.2" />
+    <PackageReference Include="GraphQL.Client.Abstractions" Version="6.0.2" />
+    <PackageReference Include="GraphQL.Client.Abstractions.Websocket" Version="6.0.2" />
+    <PackageReference Include="GraphQL.Client.LocalExecution" Version="6.0.2" />
+    <PackageReference Include="GraphQL.Client.Serializer.Newtonsoft" Version="6.0.2" />
+    <PackageReference Include="GraphQL.Client.Serializer.SystemTextJson" Version="6.0.2" />
+    <PackageReference Include="GraphQL.Primitives" Version="6.0.2" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="8.0.1" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="8.0.1" PrivateAssets="all" />
   </ItemGroup>
