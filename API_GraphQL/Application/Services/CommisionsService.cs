@@ -52,25 +52,34 @@ namespace API_GraphQL.Application.Services
         /// <param name="startDate">Start date of the date range to filter.</param>
         /// <param name="endDate">End date of the date range to filter.</param>
         /// <returns>A paginated list of commissions.</returns>
-        public PaginatedList GetCommissionsPaginated(DateTime startDate, DateTime endDate, Guid? sinceId = null)
+        public PaginatedList GetCommissionsPaginated(DateTime sincePostingDate, DateTime beforePostingDate, Guid? sinceCommissionId = null)
         {
 
             var data = _commissions_Paginated.Records;
             var pageSize = _pageSize;
             var pageNumber = _pageNumber;
 
-            
-
-            if (startDate != null && endDate != null)
+            if (sincePostingDate < DateTime.Today.AddYears(-20) || sincePostingDate > DateTime.Today)
             {
-                data = data.Where(p => p.EventDate >= startDate && p.EventDate <= endDate).ToList();
+                throw new ArgumentException("sincePostingDate must be within the range of 20 years ago to today.");
+            }
+
+            if (beforePostingDate < DateTime.Today.AddYears(-20) || beforePostingDate > DateTime.Today)
+            {
+                throw new ArgumentException("beforePostingDate must be within the range from today minus 20 years to today plus 20 years.");
+            }
+
+
+            if (sincePostingDate != null && beforePostingDate != null)
+            {
+                data = data.Where(p => p.PostingDate >= sincePostingDate && p.EventDate <= beforePostingDate).ToList();
             }
 
             int positionSinceId;
 
-            if (sinceId != null && sinceId != Guid.Empty)
+            if (sinceCommissionId != null && sinceCommissionId != Guid.Empty)
             {
-                positionSinceId = data.FindIndex(p => p.CommissionId == sinceId);
+                positionSinceId = data.FindIndex(p => p.CommissionId == sinceCommissionId);
                 if (positionSinceId != -1)
                 {
                     pageNumber = (int)Math.Floor((decimal)(positionSinceId + 1) / pageSize) + 1;
@@ -88,7 +97,7 @@ namespace API_GraphQL.Application.Services
             PaginatedList paginatedResult = new PaginatedList();
             paginatedResult.Records = result;
             paginatedResult.Count = data.Count;
-            paginatedResult.MaxId = result.Count < _pageSize ? null :  result[result.Count - 1].CommissionId;
+            paginatedResult.MaxCommissionId = result.Count < _pageSize ? null :  result[result.Count - 1].CommissionId;
             paginatedResult.PayloadComplete = result.Count == 0 ? null : data[data.Count - 1] == result[result.Count - 1];
 
             return paginatedResult;

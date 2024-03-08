@@ -23,7 +23,7 @@ namespace API_GraphQL.GraphQL
         /// <summary>
         /// Query to retrieve all available commissions.
         /// </summary>
-        public IQueryable<Commissions> Commissions => _commisionsService.GetCommissions();
+        //public IQueryable<Commissions> Commissions => _commisionsService.GetCommissions();
 
         /// <summary>
         /// Query to retrieve paginated and filtered commissions of a publisher.
@@ -32,9 +32,9 @@ namespace API_GraphQL.GraphQL
         /// <param name="startDate">Start date of the date range to filter.</param>
         /// <param name="endDate">End date of the date range to filter.</param>
         /// <returns>A paginated list of publisher commissions.</returns>
-        public PaginatedList PublisherCommissions(DateTime startDate, DateTime endDate, Guid? sinceId = null)
+        public PaginatedList PublisherCommissions(DateTime sincePostingDate, DateTime beforePostingDate, Guid? sinceCommissionId = null)
         {
-            var response = _commisionsService.GetCommissionsPaginated(startDate, endDate, sinceId);
+            var response = _commisionsService.GetCommissionsPaginated(sincePostingDate, beforePostingDate, sinceCommissionId);
 
             return response;
         }

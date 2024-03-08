@@ -23,7 +23,7 @@ namespace API_GraphQL.Application.Services
                 commissionsList.Add(new Commissions
                 {
                     CommissionId = Guid.NewGuid(),
-                    AdvertiserName = "Advertiser" + i,
+                    AdvertiserName = GenerateAdvertiser(),
                     ActionType = i % 2 == 0 ? "Sale" : "Lead",
                     SaleAmountUsd = GenerateRandomDecimal(10, 1000),
                     OrderDiscountUsd = GenerateRandomDecimal(0, 100),
@@ -52,6 +52,30 @@ namespace API_GraphQL.Application.Services
         {
             Random random = new Random();
             return random.Next(min, max + 1);
+        }
+        static string GenerateAdvertiser()
+        {
+            List<string> comercios = new List<string>
+            {
+                "Walmart",
+                "Amazon",
+                "Carrefour",
+                "Tesco",
+                "Aldi",
+                "Lidl",
+                "Kmart",
+                "Home Depot",
+                "Lowe's",
+                "Best Buy",
+                "IKEA",
+                "Auchan",
+                "Bunnings Warehouse",
+                "Big Lots",
+                "Menards"
+            };
+            Random rnd = new Random();
+            int index = rnd.Next(comercios.Count);
+            return comercios[index];
         }
 
     }

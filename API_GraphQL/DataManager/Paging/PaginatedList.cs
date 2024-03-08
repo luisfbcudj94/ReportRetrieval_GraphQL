@@ -6,7 +6,7 @@ namespace API_GraphQL.DataManager.Paging
     {
         public int Count { get; set; }
         public bool? PayloadComplete { get; set; }
-        public Guid? MaxId { get; set; }
+        public Guid? MaxCommissionId { get; set; }
         public List<Commissions> Records { get; set; }
     }
 }

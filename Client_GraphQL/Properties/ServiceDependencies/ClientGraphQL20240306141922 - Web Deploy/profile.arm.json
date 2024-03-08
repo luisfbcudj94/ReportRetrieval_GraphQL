@@ -21,7 +21,7 @@
     },
     "resourceName": {
       "type": "string",
-      "defaultValue": "ClientGraphQL20240305173931",
+      "defaultValue": "ClientGraphQL20240306141922",
       "metadata": {
         "description": "Name of the main resource to be created by this template."
       }
