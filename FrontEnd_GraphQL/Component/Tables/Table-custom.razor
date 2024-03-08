@@ -77,13 +77,14 @@
 </div>
 
 @code {
+
     private int pageNumber = 1;
     private int pageSize = 1;
     private int pageCount = 0;
     private bool hasPrevious = false;
     private bool hasNext = false;
     private int selectedPage = 1;
-    // Define una lista de usuarios
+    
     List<User> users = new List<User>
     {
         new User { UserId = 1, EmployeeId = "EMP001", Email = "user1@example.com", Designation = "Developer", ReportingManager = "Manager 1", JoiningDate = new DateTime(2022, 1, 1), DateOfBirth = new DateTime(1990, 1, 1), DisplayName = "User One", RoleId = "Role001" },
