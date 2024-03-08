@@ -68,10 +68,62 @@
     inset: calc(20vh + 3.25rem) 0 auto 0.2rem;
 }
 
-    .loading-progress-text:after {
-        content: var(--blazor-load-percentage-text, "Loading");
-    }
+.loading-progress-text:after {
+    content: var(--blazor-load-percentage-text, "Loading");
+}
 
 code {
     color: #c02d76;
+}
+
+.navbar {
+    height: 50px;
+}
+
+.sidebar {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: 250px;
+    padding: 20px;
+    background-color: #f8f9fa;
+    border-right: 1px solid #dee2e6;
+}
+
+.sidebar .nav {
+    margin-top: 50px;
+}
+
+.sidebar ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.sidebar ul li {
+    margin-bottom: 20px;
+}
+
+.sidebar ul li a {
+    display: block;
+    padding: 10px;
+    text-decoration: none;
+    color: #000;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+.sidebar ul li a:hover {
+    background-color: #e9ecef;
+    color: #007bff;
+}
+
+.content {
+    margin-left: 250px; /* Width of the sidebar */
+    padding: 20px;
+}
+
+.content {
+    margin-left: 250px;
+    padding: 20px;
 }

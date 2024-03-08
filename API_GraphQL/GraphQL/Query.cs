@@ -23,7 +23,7 @@ namespace API_GraphQL.GraphQL
         /// <summary>
         /// Query to retrieve all available commissions.
         /// </summary>
-        public IQueryable<Commissions> Commissions => _commisionsService.GetCommissions();
+        //public IQueryable<Commissions> Commissions => _commisionsService.GetCommissions();
 
         /// <summary>
         /// Query to retrieve paginated and filtered commissions of a publisher.
