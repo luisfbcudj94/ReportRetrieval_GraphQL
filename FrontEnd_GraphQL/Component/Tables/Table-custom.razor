@@ -1,22 +1,23 @@
-﻿<table class="table table-hover">
+﻿@using FrontEnd_GraphQL.Application.Models
+<table class="table table-hover">
     <thead class="table-primary">
         <tr>
-            <th>User Id</th>
-            <th>Employee Id</th>
-            <th>Email</th>
-            <th>Designation</th>
+            <th>Commission Id</th>
+            <th>Advertiser Name</th>
+            <th>Sale Amount Usd</th>
+            <th>Order Discount Usd</th>
         </tr>
     </thead>
     <tbody>
-        @if (users != null)
+        @if (Data != null)
         {
-            @foreach (var user in users)
+            @foreach (var item in Data)
             {
                 <tr>
-                    <td>@user.UserId</td>
-                    <td>@user.EmployeeId</td>
-                    <td>@user.Email</td>
-                    <td>@user.Designation</td>
+                    <td>@item.CommissionId</td>
+                    <td>@item.AdvertiserName</td>
+                    <td>@item.SaleAmountUsd</td>
+                    <td>@item.OrderDiscountUsd</td>
                 </tr>
             }
         }
@@ -77,6 +78,7 @@
 </div>
 
 @code {
+    [Parameter] public List<Commissions> Data { get; set; }
 
     private int pageNumber = 1;
     private int pageSize = 1;

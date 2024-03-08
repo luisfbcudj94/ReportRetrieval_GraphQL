@@ -1,13 +1,19 @@
 ﻿@page "/dashboard"
 
 @using BlazorBootstrap
+@using FrontEnd_GraphQL.Application.Interfaces
+@using FrontEnd_GraphQL.Application.Models
 @using FrontEnd_GraphQL.Component.Tables
+@using FrontEnd_GraphQL.Helpers.Paging
+
+@inject ICommissionsService _commissionsService;
 
 
 <div class="content content-dashboard">
 
     <div class="container-chart">
-        <LineChart @ref="lineChart" Class="mb-4" />
+        @* Chart *@
+@*         <LineChart @ref="lineChart" Class="mb-4" />
 
         <BlazorBootstrap.Button Type="BlazorBootstrap.ButtonType.Button" Color="BlazorBootstrap.ButtonColor.Primary" Size="BlazorBootstrap.Size.Small" @onclick="async () => await RandomizeAsync()"> Randomize </BlazorBootstrap.Button>
 
@@ -16,11 +22,44 @@
         <BlazorBootstrap.Button Type="BlazorBootstrap.ButtonType.Button" Color="ButtonColor.Primary" Size="BlazorBootstrap.Size.Small" @onclick="async () => await ShowHorizontalLineChartAsync()"> Horizontal Line Chart </BlazorBootstrap.Button>
         <BlazorBootstrap.Button Type="BlazorBootstrap.ButtonType.Button" Color="ButtonColor.Primary" Size="BlazorBootstrap.Size.Small" @onclick="async () => await ShowVerticalLineChartAsync()">
             Vertical Line Chart
-        </BlazorBootstrap.Button>
+        </BlazorBootstrap.Button> *@
     </div>
 
     <div class="container-table">
-        <Table_custom></Table_custom>
+
+        <div class="row container-filters">
+            <div class="col">
+                <label for="start_date" class="form-label">Start Date:</label>
+                <input type="date" class="form-control" id="start_date" @bind="start_date" />
+            </div>
+            <div class="col">
+                <label for="end_date" class="form-label">End Date:</label>
+                <input type="date" class="form-control" id="end_date" @bind="end_date" />
+            </div>
+        </div>
+        <div class="row mt-3 container-search">
+            <div class="col">
+                <button class="btn btn-primary" @onclick="Search">Search</button>
+            </div>
+        </div
+
+        <div class="container-summary">
+            <p>Total items: <b>@publisherCommissions?.Count</b></p>
+            <p>Items displayed: <b>@publisherCommissions?.Records?.Count</b></p>
+
+            @if (payloadComplete == true)
+            {
+                <button type="button" class="btn btn-outline-primary" disabled>Next request</button>
+            }
+            else
+            {
+                <button type="button" class="btn btn-outline-primary" @onclick="NextRequest">Next request</button>
+            }
+            
+            
+        </div>
+
+        <Table_custom Data="@publisherCommissions?.Records"></Table_custom>
     </div>
 </div>
 
@@ -33,148 +72,182 @@
     private int datasetsCount;
     private int labelsCount;
 
+    // Data
+    private PublisherCommissions publisherCommissions = new();
+    private string? maxCommissionId = Guid.Empty.ToString();
+    private bool? payloadComplete = false;
+
+    private DateTime start_date = DateTime.UtcNow.AddDays(-30);
+    private DateTime end_date = DateTime.UtcNow;
+
     private Random random = new();
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
-        chartData = new ChartData { Labels = GetDefaultDataLabels(6), Datasets = GetDefaultDataSets(3) };
-        lineChartOptions = new() { Responsive = true, Interaction = new Interaction { Mode = InteractionMode.Index } };
+        // Chart
+        // chartData = new ChartData { Labels = GetDefaultDataLabels(6), Datasets = GetDefaultDataSets(3) };
+        // lineChartOptions = new() { Responsive = true, Interaction = new Interaction { Mode = InteractionMode.Index } };
+
+        await GetCommissions();
     }
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
+    private async Task GetCommissions()
     {
-        if (firstRender)
-        {
-            await lineChart.InitializeAsync(chartData, lineChartOptions);
-        }
-        await base.OnAfterRenderAsync(firstRender);
+        // DateTime start_date = new DateTime(2024, 2, 20);
+        // DateTime end_date = new DateTime(2024, 2, 29);
+        publisherCommissions = await _commissionsService.GetCommissionsPaginated(start_date, end_date, maxCommissionId);
+
+        maxCommissionId = publisherCommissions?.MaxCommissionId;
+        payloadComplete = publisherCommissions?.PayloadComplete;
     }
 
-    private async Task RandomizeAsync()
+    private async Task Search()
     {
-        if (chartData is null || chartData.Datasets is null || !chartData.Datasets.Any()) return;
-
-        var newDatasets = new List<IChartDataset>();
-
-        foreach (var dataset in chartData.Datasets)
-        {
-            if (dataset is LineChartDataset lineChartDataset
-                && lineChartDataset is not null
-                && lineChartDataset.Data is not null)
-            {
-                var count = lineChartDataset.Data.Count;
-
-                var newData = new List<double>();
-                for (var i = 0; i < count; i++)
-                {
-                    newData.Add(random.Next(200));
-                }
-
-                lineChartDataset.Data = newData;
-                newDatasets.Add(lineChartDataset);
-            }
-        }
-
-        chartData.Datasets = newDatasets;
-
-        await lineChart.UpdateAsync(chartData, lineChartOptions);
+         await GetCommissions();
     }
 
-    private async Task AddDatasetAsync()
+    private async Task NextRequest()
     {
-        if (chartData is null || chartData.Datasets is null) return;
-
-        var chartDataset = GetRandomLineChartDataset();
-        chartData = await lineChart.AddDatasetAsync(chartData, chartDataset, lineChartOptions);
+         await GetCommissions();
     }
+    
 
-    private async Task AddDataAsync()
-    {
-        if (chartData is null || chartData.Datasets is null)
-            return;
+    // CHART
+    // protected override async Task OnAfterRenderAsync(bool firstRender)
+    // {
+    //     if (firstRender)
+    //     {
+    //         await lineChart.InitializeAsync(chartData, lineChartOptions);
+    //     }
+    //     await base.OnAfterRenderAsync(firstRender);
+    // }
 
-        var data = new List<IChartDatasetData>();
-        foreach (var dataset in chartData.Datasets)
-        {
-            if (dataset is LineChartDataset lineChartDataset)
-                data.Add(new LineChartDatasetData(lineChartDataset.Label, random.Next(200)));
-        }
+    // private async Task RandomizeAsync()
+    // {
+    //     if (chartData is null || chartData.Datasets is null || !chartData.Datasets.Any()) return;
 
-        chartData = await lineChart.AddDataAsync(chartData, GetNextDataLabel(), data);
-    }
+    //     var newDatasets = new List<IChartDataset>();
 
-    private async Task ShowHorizontalLineChartAsync()
-    {
-        lineChartOptions.IndexAxis = "y";
-        await lineChart.UpdateAsync(chartData, lineChartOptions);
-    }
+    //     foreach (var dataset in chartData.Datasets)
+    //     {
+    //         if (dataset is LineChartDataset lineChartDataset
+    //             && lineChartDataset is not null
+    //             && lineChartDataset.Data is not null)
+    //         {
+    //             var count = lineChartDataset.Data.Count;
 
-    private async Task ShowVerticalLineChartAsync()
-    {
-        lineChartOptions.IndexAxis = "x";
-        await lineChart.UpdateAsync(chartData, lineChartOptions);
-    }
+    //             var newData = new List<double>();
+    //             for (var i = 0; i < count; i++)
+    //             {
+    //                 newData.Add(random.Next(200));
+    //             }
+
+    //             lineChartDataset.Data = newData;
+    //             newDatasets.Add(lineChartDataset);
+    //         }
+    //     }
+
+    //     chartData.Datasets = newDatasets;
+
+    //     await lineChart.UpdateAsync(chartData, lineChartOptions);
+    // }
+
+    // private async Task AddDatasetAsync()
+    // {
+    //     if (chartData is null || chartData.Datasets is null) return;
+
+    //     var chartDataset = GetRandomLineChartDataset();
+    //     chartData = await lineChart.AddDatasetAsync(chartData, chartDataset, lineChartOptions);
+    // }
+
+    // private async Task AddDataAsync()
+    // {
+    //     if (chartData is null || chartData.Datasets is null)
+    //         return;
+
+    //     var data = new List<IChartDatasetData>();
+    //     foreach (var dataset in chartData.Datasets)
+    //     {
+    //         if (dataset is LineChartDataset lineChartDataset)
+    //             data.Add(new LineChartDatasetData(lineChartDataset.Label, random.Next(200)));
+    //     }
+
+    //     chartData = await lineChart.AddDataAsync(chartData, GetNextDataLabel(), data);
+    // }
+
+    // private async Task ShowHorizontalLineChartAsync()
+    // {
+    //     lineChartOptions.IndexAxis = "y";
+    //     await lineChart.UpdateAsync(chartData, lineChartOptions);
+    // }
+
+    // private async Task ShowVerticalLineChartAsync()
+    // {
+    //     lineChartOptions.IndexAxis = "x";
+    //     await lineChart.UpdateAsync(chartData, lineChartOptions);
+    // }
 
     
 
-    private List<IChartDataset> GetDefaultDataSets(int numberOfDatasets)
-    {
-        var datasets = new List<IChartDataset>();
+    // private List<IChartDataset> GetDefaultDataSets(int numberOfDatasets)
+    // {
+    //     var datasets = new List<IChartDataset>();
 
-        for (var index = 0; index < numberOfDatasets; index++)
-        {
-            datasets.Add(GetRandomLineChartDataset());
-        }
+    //     for (var index = 0; index < numberOfDatasets; index++)
+    //     {
+    //         datasets.Add(GetRandomLineChartDataset());
+    //     }
 
-        return datasets;
-    }
+    //     return datasets;
+    // }
 
-    private LineChartDataset GetRandomLineChartDataset()
-    {
-        var c = ColorBuilder.CategoricalTwelveColors[datasetsCount].ToColor();
+    // private LineChartDataset GetRandomLineChartDataset()
+    // {
+    //     var c = ColorBuilder.CategoricalTwelveColors[datasetsCount].ToColor();
 
-        datasetsCount += 1;
+    //     datasetsCount += 1;
 
-        return new LineChartDataset
-            {
-                Label = $"Team {datasetsCount}",
-                Data = GetRandomData(),
-                BackgroundColor = new List<string> { c.ToRgbString() },
-                BorderColor = new List<string> { c.ToRgbString() },
-                BorderWidth = new List<double> { 2 },
-                HoverBorderWidth = new List<double> { 4 },
-                PointBackgroundColor = new List<string> { c.ToRgbString() },
-                PointRadius = new List<int> { 0 }, // hide points
-                PointHoverRadius = new List<int> { 4 }
-            };
-    }
+    //     return new LineChartDataset
+    //         {
+    //             Label = $"Team {datasetsCount}",
+    //             Data = GetRandomData(),
+    //             BackgroundColor = new List<string> { c.ToRgbString() },
+    //             BorderColor = new List<string> { c.ToRgbString() },
+    //             BorderWidth = new List<double> { 2 },
+    //             HoverBorderWidth = new List<double> { 4 },
+    //             PointBackgroundColor = new List<string> { c.ToRgbString() },
+    //             PointRadius = new List<int> { 0 }, // hide points
+    //             PointHoverRadius = new List<int> { 4 }
+    //         };
+    // }
 
-    private List<double> GetRandomData()
-    {
-        var data = new List<double>();
-        for (var index = 0; index < labelsCount; index++)
-        {
-            data.Add(random.Next(200));
-        }
+    // private List<double> GetRandomData()
+    // {
+    //     var data = new List<double>();
+    //     for (var index = 0; index < labelsCount; index++)
+    //     {
+    //         data.Add(random.Next(200));
+    //     }
 
-        return data;
-    }
+    //     return data;
+    // }
 
-    private List<string> GetDefaultDataLabels(int numberOfLabels)
-    {
-        var labels = new List<string>();
-        for (var index = 0; index < numberOfLabels; index++)
-        {
-            labels.Add(GetNextDataLabel());
-        }
+    // private List<string> GetDefaultDataLabels(int numberOfLabels)
+    // {
+    //     var labels = new List<string>();
+    //     for (var index = 0; index < numberOfLabels; index++)
+    //     {
+    //         labels.Add(GetNextDataLabel());
+    //     }
 
-        return labels;
-    }
+    //     return labels;
+    // }
 
-    private string GetNextDataLabel()
-    {
-        labelsCount += 1;
-        return $"Day {labelsCount}";
-    }
+    // private string GetNextDataLabel()
+    // {
+    //     labelsCount += 1;
+    //     return $"Day {labelsCount}";
+    // }
+    // END CHART
 
 }
