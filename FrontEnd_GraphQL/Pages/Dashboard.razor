@@ -1,4 +1,4 @@
-﻿@page "/dashboard"
+﻿@page "/"
 
 @using BlazorBootstrap
 @using FrontEnd_GraphQL.Application.Interfaces
@@ -11,6 +11,7 @@
 @inject ICommissionsService _commissionsService;
 @inject ICSVService _CSVService;
 
+<Preload LoadingText="Loading..." />
 
 <div class="content content-dashboard">
 
@@ -33,8 +34,9 @@
         </div
 
         <div class="container-summary">
-            <p>Total items: <b>@publisherCommissions?.Count</b></p>
-            <p>Items displayed: <b>@publisherCommissions?.Records?.Count</b></p>
+            <p>Total items: <b>@totalItems</b></p>
+            <p>Items displayed: <b>@dataCount</b></p>
+            <p>Number of request: <b>@numberOfRequest</b></p>
 
             @if (payloadComplete == true || payloadComplete == null)
             {
@@ -72,36 +74,66 @@
 
     // Data
     private PublisherCommissions publisherCommissions = new();
-    private string? maxCommissionId = Guid.Empty.ToString();
-    private bool? payloadComplete = false;
-    private int? dataCount = 0;
+    private string? maxCommissionId;
+    private bool? payloadComplete;
+    private int? dataCount;
+    private int? totalItems;
+    private int numberOfRequest;
 
-    private DateTime start_date = DateTime.UtcNow.AddDays(-30);
+    private DateTime start_date = DateTime.UtcNow.AddDays(-7);
     private DateTime end_date = DateTime.UtcNow;
 
     private Random random = new();
 
     private List<Commissions>? dataToExport = new List<Commissions>();
 
+    [Inject] protected PreloadService PreloadService { get; set; } = default!;
+
     protected override async Task OnInitializedAsync()
     {
+
+        SetData();
         await GetCommissions();
     }
 
     private async Task GetCommissions()
     {
-        publisherCommissions = await _commissionsService.GetCommissionsPaginated(start_date, end_date, maxCommissionId);
+        try
+        {
+            PreloadService.Show(SpinnerColor.Warning);
 
-        dataToExport = publisherCommissions?.Records;
-        maxCommissionId = publisherCommissions?.MaxCommissionId;
-        payloadComplete = publisherCommissions?.PayloadComplete;
-        dataCount = publisherCommissions?.Records?.Count;
+            publisherCommissions = await _commissionsService.GetCommissionsPaginated(start_date, end_date, maxCommissionId);
+
+            dataToExport = publisherCommissions?.Records;
+            maxCommissionId = publisherCommissions?.MaxCommissionId;
+            payloadComplete = publisherCommissions?.PayloadComplete;
+            dataCount = publisherCommissions?.Records?.Count;
+            totalItems = publisherCommissions?.Count;
+            numberOfRequest += 1;
+        }
+        catch (Exception ex)
+        {
+            throw ex;
+        }
+        finally
+        {
+            PreloadService.Hide();
+        }
     }
 
     private async Task Search()
     {
-        maxCommissionId = Guid.Empty.ToString();
+        SetData();
         await GetCommissions();
+    }
+
+    private void SetData()
+    {
+        maxCommissionId = Guid.Empty.ToString();
+        numberOfRequest = 0;
+        dataCount = 0;
+        totalItems = 0;
+        payloadComplete = null;
     }
 
     private async Task NextRequest()
@@ -113,6 +145,8 @@
     {
         try
         {
+            PreloadService.Show(SpinnerColor.Warning);
+
             await jsRuntime.InvokeAsync<object>("eval", @"
                 window.saveAsFile = function(filename, data) {
                     const blob = new Blob([data], { type: 'text/csv' });
@@ -127,29 +161,41 @@
                 }
             ");
 
-        string csvContent = ConvertToCsv(dataToExport);
-        string fileName = "publisherCommissions.csv";
-        await jsRuntime.InvokeAsync<object>("saveAsFile", fileName, csvContent);
-            
+            string csvContent = ConvertToCsv(dataToExport);
+            string fileName = "publisherCommissions.csv";
+
+            if (!string.IsNullOrEmpty(csvContent))
+            {
+                await jsRuntime.InvokeAsync<object>("saveAsFile", fileName, csvContent);
+            }
         }
         catch (Exception ex)
         {
             Console.WriteLine("Error downloading CSV: " + ex.Message);
         }
+        finally
+        {
+            PreloadService.Hide();
+        }
     }
 
-    private string ConvertToCsv(List<Commissions> commissions)
+    private string ConvertToCsv(List<Commissions>? commissions)
     {
-        StringBuilder csvBuilder = new StringBuilder();
-
-        csvBuilder.AppendLine("CommissionId,AdvertiserName,ActionType,SaleAmountUsd,OrderDiscountUsd,PubCommissionAmountUsd,ActionTrackerName,WebsiteName,Aid,PostingDate,EventDate,OrderId,Coupon,IsCrossDevice");
-
-        foreach (var commission in commissions)
+        if (commissions != null)
         {
-            csvBuilder.AppendLine($"{commission.CommissionId},{commission.AdvertiserName},{commission.ActionType},{commission.SaleAmountUsd},{commission.OrderDiscountUsd},{commission.PubCommissionAmountUsd},{commission.ActionTrackerName},{commission.WebsiteName},{commission.Aid},{commission.PostingDate},{commission.EventDate},{commission.OrderId},{commission.Coupon},{commission.IsCrossDevice}");
+            StringBuilder csvBuilder = new StringBuilder();
+
+            csvBuilder.AppendLine("CommissionId,AdvertiserName,ActionType,SaleAmountUsd,OrderDiscountUsd,PubCommissionAmountUsd,ActionTrackerName,WebsiteName,Aid,PostingDate,EventDate,OrderId,Coupon,IsCrossDevice");
+
+            foreach (var commission in commissions)
+            {
+                csvBuilder.AppendLine($"{commission.CommissionId},{commission.AdvertiserName},{commission.ActionType},{commission.SaleAmountUsd},{commission.OrderDiscountUsd},{commission.PubCommissionAmountUsd},{commission.ActionTrackerName},{commission.WebsiteName},{commission.Aid},{commission.PostingDate},{commission.EventDate},{commission.OrderId},{commission.Coupon},{commission.IsCrossDevice}");
+            }
+
+            return csvBuilder.ToString();
         }
 
-        return csvBuilder.ToString();
+        return string.Empty;
     }
     
 

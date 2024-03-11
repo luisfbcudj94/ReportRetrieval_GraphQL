@@ -72,7 +72,7 @@ namespace API_GraphQL.Application.Services
 
             if (sincePostingDate != null && beforePostingDate != null)
             {
-                data = data.Where(p => p.PostingDate >= sincePostingDate && p.PostingDate <= beforePostingDate).ToList();
+                data = data.Where(p => p.PostingDate.Date >= sincePostingDate.Date && p.PostingDate.Date <= beforePostingDate.Date).ToList();
             }
 
             int positionSinceId;
