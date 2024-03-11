@@ -19,7 +19,7 @@ namespace FrontEnd_GraphQL.Application.Services
             _graphQLClientService = graphQLClientService;
         }
 
-        public async Task<PublisherCommissions> GetCommissionsPaginated(DateTime sincePostingDate, DateTime beforePostingDate, string? sinceCommissionId = null, string? orderId = null)
+        public async Task<PublisherCommissions> GetCommissionsPaginated(DateTime sincePostingDate, DateTime beforePostingDate, string? sinceCommissionId = null, string? orderId = null, int pageNumber = 1, int pageSize = 25)
         {
 
             if (sinceCommissionId == null)
@@ -27,7 +27,7 @@ namespace FrontEnd_GraphQL.Application.Services
                 sinceCommissionId = Guid.Empty.ToString();
             }
 
-            orderId = orderId?.Replace(" ", "");
+            //orderId = orderId?.Replace(" ", "");
             Guid guid;
             if (string.IsNullOrEmpty(orderId) || !Guid.TryParse(orderId, out guid))
             {
@@ -41,11 +41,17 @@ namespace FrontEnd_GraphQL.Application.Services
                         orderId: ""{orderId}""
                         sincePostingDate: ""{sincePostingDate.ToString("yyyy-MM-dd HH:mm:ss")}""
                         beforePostingDate: ""{beforePostingDate.ToString("yyyy-MM-dd HH:mm:ss")}""
-
+                        pageNumber: {pageNumber}
+                        pageSize: {pageSize}
                     ) {{
                         count
                         payloadComplete
                         maxCommissionId
+                        pageCount
+                        pageNumber
+                        pageSize
+                        hasPrevious
+                        hasNext
                         records {{
                             commissionId
                             advertiserName
@@ -73,6 +79,8 @@ namespace FrontEnd_GraphQL.Application.Services
             data.PayloadComplete = response?.publisherCommissions?.payloadComplete?.Value;
             data.MaxCommissionId = response?.publisherCommissions?.maxCommissionId?.Value;
             data.Count = response?.publisherCommissions?.count;
+            data.PageNumber = response?.publisherCommissions?.pageNumber;
+            data.PageSize = response?.publisherCommissions?.pageSize;
             data.Records = response?.publisherCommissions.records.ToObject<List<Commissions>>();
 
             //Console.WriteLine($"Exporting data: from \n {response.publisherCommissions.records[0]} \n to \n {response.publisherCommissions.records[response.publisherCommissions.records.Count - 1]} \n");

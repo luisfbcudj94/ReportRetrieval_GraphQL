@@ -40,16 +40,6 @@
         <div class="container-summary">
             <p>Total items: <b>@totalItems</b></p>
             <p>Items displayed: <b>@dataCount</b></p>
-            <p>Number of request: <b>@numberOfRequest</b></p>
-
-            @if (payloadComplete == true || payloadComplete == null)
-            {
-                <button type="button" class="btn btn-outline-primary" disabled>Next request</button>
-            }
-            else
-            {
-                <button type="button" class="btn btn-outline-primary" @onclick="NextRequest">Next request</button>
-            }
 
             @if (dataCount != null && dataCount > 0)
             {
@@ -63,7 +53,15 @@
         </div>
         
 
-        <Table_custom Data="@publisherCommissions?.Records"></Table_custom>
+        <Table_custom 
+            data="@dataToExport"
+            pageNumber="pageNumber"
+            pageSize="@pageSize"
+            pageCount="@pageCount"
+            hasPrevious="@hasPrevious"
+            hasNext="@hasNext"
+            OnGetData="SetDataRequest">
+        </Table_custom>
     </div>
 </div>
 
@@ -83,6 +81,13 @@
     private int? dataCount;
     private int? totalItems;
     private int numberOfRequest;
+
+    // Paginated
+    public int pageNumber = 1;
+    public int pageSize = 25;
+    public int pageCount = 0;
+    public bool hasPrevious = false;
+    public bool hasNext = false;
 
     private DateTime start_date = DateTime.UtcNow.AddDays(-7);
     private DateTime end_date = DateTime.UtcNow;
@@ -107,14 +112,25 @@
         {
             PreloadService.Show(SpinnerColor.Warning);
 
-            publisherCommissions = await _commissionsService.GetCommissionsPaginated(start_date, end_date, maxCommissionId, orderId);
+            publisherCommissions = await _commissionsService.GetCommissionsPaginated(start_date, end_date, maxCommissionId, orderId, pageNumber, pageSize);
 
-            dataToExport = publisherCommissions?.Records;
-            maxCommissionId = publisherCommissions?.MaxCommissionId;
-            payloadComplete = publisherCommissions?.PayloadComplete;
-            dataCount = publisherCommissions?.Records?.Count;
-            totalItems = publisherCommissions?.Count;
-            numberOfRequest += 1;
+            if (publisherCommissions != null)
+            {
+                dataToExport = publisherCommissions.Records;
+                maxCommissionId = publisherCommissions.MaxCommissionId;
+                payloadComplete = publisherCommissions.PayloadComplete;
+                dataCount = publisherCommissions.Records?.Count;
+                totalItems = publisherCommissions.Count;
+                numberOfRequest += 1;
+
+                // Paginated
+                pageNumber = publisherCommissions.PageNumber;
+                pageSize = publisherCommissions.PageSize;
+                pageCount = publisherCommissions.PageCount;
+                hasPrevious = publisherCommissions.HasPrevious;
+                hasNext = publisherCommissions.HasNext;
+            }
+
         }
         catch (Exception ex)
         {
@@ -141,8 +157,18 @@
         payloadComplete = null;
     }
 
-    private async Task NextRequest()
+    public async Task SetDataRequest(PaginatedArgs args)
     {
+        if (args.PageNumber > 0)
+        {
+            pageNumber = args.PageNumber;
+        }
+
+        if (args.PageSize > 0)
+        {
+            pageSize = args.PageSize;
+        }
+
         await GetCommissions();
     }
 

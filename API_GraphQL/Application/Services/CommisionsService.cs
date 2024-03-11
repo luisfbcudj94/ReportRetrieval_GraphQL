@@ -52,12 +52,16 @@ namespace API_GraphQL.Application.Services
         /// <param name="startDate">Start date of the date range to filter.</param>
         /// <param name="endDate">End date of the date range to filter.</param>
         /// <returns>A paginated list of commissions.</returns>
-        public PaginatedList GetCommissionsPaginated(DateTime sincePostingDate, DateTime beforePostingDate, Guid? sinceCommissionId = null, Guid? orderId = null)
+        public PaginatedList GetCommissionsPaginated
+                (DateTime sincePostingDate, 
+                DateTime beforePostingDate, 
+                Guid? sinceCommissionId = null, 
+                Guid? orderId = null,
+                int pageNumber = 1,
+                int pageSize = 25)
         {
 
             var data = _commissions_Paginated.Records;
-            var pageSize = _pageSize;
-            var pageNumber = _pageNumber;
 
             if (sincePostingDate < DateTime.Today.AddYears(-20))
             {
@@ -80,21 +84,6 @@ namespace API_GraphQL.Application.Services
                 data = data.Where(p => p.OrderId == orderId).ToList();
             }
 
-            int positionSinceId;
-
-            if (sinceCommissionId != null && sinceCommissionId != Guid.Empty)
-            {
-                positionSinceId = data.FindIndex(p => p.CommissionId == sinceCommissionId);
-                if (positionSinceId != -1)
-                {
-                    pageNumber = (int)Math.Floor((decimal)(positionSinceId + 1) / pageSize) + 1;
-                }
-                else
-                {
-                    data = new List<Commissions>();
-                }
-            }
-
             var result = data.
                 Skip((pageNumber - 1) * pageSize).
                 Take(pageSize).ToList();
@@ -102,8 +91,10 @@ namespace API_GraphQL.Application.Services
             PaginatedList paginatedResult = new PaginatedList();
             paginatedResult.Records = result;
             paginatedResult.Count = data.Count;
-            paginatedResult.MaxCommissionId = result.Count < _pageSize ? null :  result[result.Count - 1].CommissionId;
+            paginatedResult.MaxCommissionId = result.Count < pageSize ? null : result[result.Count - 1].CommissionId;
             paginatedResult.PayloadComplete = result.Count == 0 ? null : data[data.Count - 1] == result[result.Count - 1];
+            paginatedResult.PageNumber = pageNumber;
+            paginatedResult.PageSize = pageSize;
 
             return paginatedResult;
         }
