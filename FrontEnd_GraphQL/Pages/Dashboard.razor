@@ -73,11 +73,11 @@
 
     // Data
     private PublisherCommissions publisherCommissions = new();
-    private string? maxCommissionId = Guid.Empty.ToString();
-    private bool? payloadComplete = null;
-    private int? dataCount = 0;
-    private int? totalItems = 0;
-    private int numberOfRequest = 0;
+    private string? maxCommissionId;
+    private bool? payloadComplete;
+    private int? dataCount;
+    private int? totalItems;
+    private int numberOfRequest;
 
     private DateTime start_date = DateTime.UtcNow.AddDays(-7);
     private DateTime end_date = DateTime.UtcNow;
@@ -88,6 +88,7 @@
 
     protected override async Task OnInitializedAsync()
     {
+        SetData();
         await GetCommissions();
     }
 
@@ -96,16 +97,11 @@
 
         publisherCommissions = await _commissionsService.GetCommissionsPaginated(start_date, end_date, maxCommissionId);
 
-        // numberOfRequest = (maxCommissionId != null && maxCommissionId != Guid.Empty.ToString() ) ? numberOfRequest + 1 : 0;
-
         dataToExport = publisherCommissions?.Records;
         maxCommissionId = publisherCommissions?.MaxCommissionId;
         payloadComplete = publisherCommissions?.PayloadComplete;
         dataCount = publisherCommissions?.Records?.Count;
         totalItems = publisherCommissions?.Count;
-
-        // numberOfRequest = (maxCommissionId != null && maxCommissionId != Guid.Empty.ToString() ) ? numberOfRequest + 1 : 0;
-
         numberOfRequest += 1;
 
 
@@ -113,12 +109,17 @@
 
     private async Task Search()
     {
+        SetData();
+        await GetCommissions();
+    }
+
+    private void SetData()
+    {
         maxCommissionId = Guid.Empty.ToString();
         numberOfRequest = 0;
         dataCount = 0;
         totalItems = 0;
         payloadComplete = null;
-        await GetCommissions();
     }
 
     private async Task NextRequest()
