@@ -5,25 +5,14 @@
 @using FrontEnd_GraphQL.Application.Models
 @using FrontEnd_GraphQL.Component.Tables
 @using FrontEnd_GraphQL.Helpers.Paging
+@using System.Text
 
+@inject IJSRuntime jsRuntime
 @inject ICommissionsService _commissionsService;
+@inject ICSVService _CSVService;
 
 
 <div class="content content-dashboard">
-
-    <div class="container-chart">
-        @* Chart *@
-@*         <LineChart @ref="lineChart" Class="mb-4" />
-
-        <BlazorBootstrap.Button Type="BlazorBootstrap.ButtonType.Button" Color="BlazorBootstrap.ButtonColor.Primary" Size="BlazorBootstrap.Size.Small" @onclick="async () => await RandomizeAsync()"> Randomize </BlazorBootstrap.Button>
-
-        <BlazorBootstrap.Button Type="BlazorBootstrap.ButtonType.Button" Color="ButtonColor.Primary" Size="BlazorBootstrap.Size.Small" @onclick="async () => await AddDatasetAsync()"> Add Dataset </BlazorBootstrap.Button>
-        <BlazorBootstrap.Button Type="BlazorBootstrap.ButtonType.Button" Color="ButtonColor.Primary" Size="BlazorBootstrap.Size.Small" @onclick="async () => await AddDataAsync()"> Add Data </BlazorBootstrap.Button>
-        <BlazorBootstrap.Button Type="BlazorBootstrap.ButtonType.Button" Color="ButtonColor.Primary" Size="BlazorBootstrap.Size.Small" @onclick="async () => await ShowHorizontalLineChartAsync()"> Horizontal Line Chart </BlazorBootstrap.Button>
-        <BlazorBootstrap.Button Type="BlazorBootstrap.ButtonType.Button" Color="ButtonColor.Primary" Size="BlazorBootstrap.Size.Small" @onclick="async () => await ShowVerticalLineChartAsync()">
-            Vertical Line Chart
-        </BlazorBootstrap.Button> *@
-    </div>
 
     <div class="container-table">
 
@@ -47,7 +36,7 @@
             <p>Total items: <b>@publisherCommissions?.Count</b></p>
             <p>Items displayed: <b>@publisherCommissions?.Records?.Count</b></p>
 
-            @if (payloadComplete == true)
+            @if (payloadComplete == true || payloadComplete == null)
             {
                 <button type="button" class="btn btn-outline-primary" disabled>Next request</button>
             }
@@ -55,9 +44,18 @@
             {
                 <button type="button" class="btn btn-outline-primary" @onclick="NextRequest">Next request</button>
             }
-            
+
+            @if (dataCount != null && dataCount > 0)
+            {
+                <button type="button" class="btn btn-outline-success" @onclick="DownloadCSV">Download</button>
+            }
+            else
+            {
+                <button type="button" class="btn btn-outline-success" disabled>Download</button>
+            }
             
         </div>
+        
 
         <Table_custom Data="@publisherCommissions?.Records"></Table_custom>
     </div>
@@ -76,178 +74,83 @@
     private PublisherCommissions publisherCommissions = new();
     private string? maxCommissionId = Guid.Empty.ToString();
     private bool? payloadComplete = false;
+    private int? dataCount = 0;
 
     private DateTime start_date = DateTime.UtcNow.AddDays(-30);
     private DateTime end_date = DateTime.UtcNow;
 
     private Random random = new();
 
+    private List<Commissions>? dataToExport = new List<Commissions>();
+
     protected override async Task OnInitializedAsync()
     {
-        // Chart
-        // chartData = new ChartData { Labels = GetDefaultDataLabels(6), Datasets = GetDefaultDataSets(3) };
-        // lineChartOptions = new() { Responsive = true, Interaction = new Interaction { Mode = InteractionMode.Index } };
-
         await GetCommissions();
     }
 
     private async Task GetCommissions()
     {
-        // DateTime start_date = new DateTime(2024, 2, 20);
-        // DateTime end_date = new DateTime(2024, 2, 29);
         publisherCommissions = await _commissionsService.GetCommissionsPaginated(start_date, end_date, maxCommissionId);
 
+        dataToExport = publisherCommissions?.Records;
         maxCommissionId = publisherCommissions?.MaxCommissionId;
         payloadComplete = publisherCommissions?.PayloadComplete;
+        dataCount = publisherCommissions?.Records?.Count;
     }
 
     private async Task Search()
     {
-         await GetCommissions();
+        maxCommissionId = Guid.Empty.ToString();
+        await GetCommissions();
     }
 
     private async Task NextRequest()
     {
-         await GetCommissions();
+        await GetCommissions();
+    }
+
+    private async Task DownloadCSV()
+    {
+        try
+        {
+            await jsRuntime.InvokeAsync<object>("eval", @"
+                window.saveAsFile = function(filename, data) {
+                    const blob = new Blob([data], { type: 'text/csv' });
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = filename;
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                    document.body.removeChild(a);
+                }
+            ");
+
+        string csvContent = ConvertToCsv(dataToExport);
+        string fileName = "publisherCommissions.csv";
+        await jsRuntime.InvokeAsync<object>("saveAsFile", fileName, csvContent);
+            
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Error downloading CSV: " + ex.Message);
+        }
+    }
+
+    private string ConvertToCsv(List<Commissions> commissions)
+    {
+        StringBuilder csvBuilder = new StringBuilder();
+
+        csvBuilder.AppendLine("CommissionId,AdvertiserName,ActionType,SaleAmountUsd,OrderDiscountUsd,PubCommissionAmountUsd,ActionTrackerName,WebsiteName,Aid,PostingDate,EventDate,OrderId,Coupon,IsCrossDevice");
+
+        foreach (var commission in commissions)
+        {
+            csvBuilder.AppendLine($"{commission.CommissionId},{commission.AdvertiserName},{commission.ActionType},{commission.SaleAmountUsd},{commission.OrderDiscountUsd},{commission.PubCommissionAmountUsd},{commission.ActionTrackerName},{commission.WebsiteName},{commission.Aid},{commission.PostingDate},{commission.EventDate},{commission.OrderId},{commission.Coupon},{commission.IsCrossDevice}");
+        }
+
+        return csvBuilder.ToString();
     }
     
-
-    // CHART
-    // protected override async Task OnAfterRenderAsync(bool firstRender)
-    // {
-    //     if (firstRender)
-    //     {
-    //         await lineChart.InitializeAsync(chartData, lineChartOptions);
-    //     }
-    //     await base.OnAfterRenderAsync(firstRender);
-    // }
-
-    // private async Task RandomizeAsync()
-    // {
-    //     if (chartData is null || chartData.Datasets is null || !chartData.Datasets.Any()) return;
-
-    //     var newDatasets = new List<IChartDataset>();
-
-    //     foreach (var dataset in chartData.Datasets)
-    //     {
-    //         if (dataset is LineChartDataset lineChartDataset
-    //             && lineChartDataset is not null
-    //             && lineChartDataset.Data is not null)
-    //         {
-    //             var count = lineChartDataset.Data.Count;
-
-    //             var newData = new List<double>();
-    //             for (var i = 0; i < count; i++)
-    //             {
-    //                 newData.Add(random.Next(200));
-    //             }
-
-    //             lineChartDataset.Data = newData;
-    //             newDatasets.Add(lineChartDataset);
-    //         }
-    //     }
-
-    //     chartData.Datasets = newDatasets;
-
-    //     await lineChart.UpdateAsync(chartData, lineChartOptions);
-    // }
-
-    // private async Task AddDatasetAsync()
-    // {
-    //     if (chartData is null || chartData.Datasets is null) return;
-
-    //     var chartDataset = GetRandomLineChartDataset();
-    //     chartData = await lineChart.AddDatasetAsync(chartData, chartDataset, lineChartOptions);
-    // }
-
-    // private async Task AddDataAsync()
-    // {
-    //     if (chartData is null || chartData.Datasets is null)
-    //         return;
-
-    //     var data = new List<IChartDatasetData>();
-    //     foreach (var dataset in chartData.Datasets)
-    //     {
-    //         if (dataset is LineChartDataset lineChartDataset)
-    //             data.Add(new LineChartDatasetData(lineChartDataset.Label, random.Next(200)));
-    //     }
-
-    //     chartData = await lineChart.AddDataAsync(chartData, GetNextDataLabel(), data);
-    // }
-
-    // private async Task ShowHorizontalLineChartAsync()
-    // {
-    //     lineChartOptions.IndexAxis = "y";
-    //     await lineChart.UpdateAsync(chartData, lineChartOptions);
-    // }
-
-    // private async Task ShowVerticalLineChartAsync()
-    // {
-    //     lineChartOptions.IndexAxis = "x";
-    //     await lineChart.UpdateAsync(chartData, lineChartOptions);
-    // }
-
-    
-
-    // private List<IChartDataset> GetDefaultDataSets(int numberOfDatasets)
-    // {
-    //     var datasets = new List<IChartDataset>();
-
-    //     for (var index = 0; index < numberOfDatasets; index++)
-    //     {
-    //         datasets.Add(GetRandomLineChartDataset());
-    //     }
-
-    //     return datasets;
-    // }
-
-    // private LineChartDataset GetRandomLineChartDataset()
-    // {
-    //     var c = ColorBuilder.CategoricalTwelveColors[datasetsCount].ToColor();
-
-    //     datasetsCount += 1;
-
-    //     return new LineChartDataset
-    //         {
-    //             Label = $"Team {datasetsCount}",
-    //             Data = GetRandomData(),
-    //             BackgroundColor = new List<string> { c.ToRgbString() },
-    //             BorderColor = new List<string> { c.ToRgbString() },
-    //             BorderWidth = new List<double> { 2 },
-    //             HoverBorderWidth = new List<double> { 4 },
-    //             PointBackgroundColor = new List<string> { c.ToRgbString() },
-    //             PointRadius = new List<int> { 0 }, // hide points
-    //             PointHoverRadius = new List<int> { 4 }
-    //         };
-    // }
-
-    // private List<double> GetRandomData()
-    // {
-    //     var data = new List<double>();
-    //     for (var index = 0; index < labelsCount; index++)
-    //     {
-    //         data.Add(random.Next(200));
-    //     }
-
-    //     return data;
-    // }
-
-    // private List<string> GetDefaultDataLabels(int numberOfLabels)
-    // {
-    //     var labels = new List<string>();
-    //     for (var index = 0; index < numberOfLabels; index++)
-    //     {
-    //         labels.Add(GetNextDataLabel());
-    //     }
-
-    //     return labels;
-    // }
-
-    // private string GetNextDataLabel()
-    // {
-    //     labelsCount += 1;
-    //     return $"Day {labelsCount}";
-    // }
-    // END CHART
 
 }
