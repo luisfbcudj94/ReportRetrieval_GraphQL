@@ -17,6 +17,6 @@ namespace API_GraphQL.Application.Interfaces
         /// <param name="startDate">Start date of the date range to filter.</param>
         /// <param name="endDate">End date of the date range to filter.</param>
         /// <returns>A paginated list of publisher commissions.</returns>
-        PaginatedList GetCommissionsPaginated(DateTime sincePostingDate, DateTime beforePostingDate, Guid? sinceCommissionId = null);
+        PaginatedList GetCommissionsPaginated(DateTime sincePostingDate, DateTime beforePostingDate, Guid? sinceCommissionId = null, Guid? orderId = null);
     }
 }

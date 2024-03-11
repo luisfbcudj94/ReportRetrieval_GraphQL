@@ -52,7 +52,7 @@ namespace API_GraphQL.Application.Services
         /// <param name="startDate">Start date of the date range to filter.</param>
         /// <param name="endDate">End date of the date range to filter.</param>
         /// <returns>A paginated list of commissions.</returns>
-        public PaginatedList GetCommissionsPaginated(DateTime sincePostingDate, DateTime beforePostingDate, Guid? sinceCommissionId = null)
+        public PaginatedList GetCommissionsPaginated(DateTime sincePostingDate, DateTime beforePostingDate, Guid? sinceCommissionId = null, Guid? orderId = null)
         {
 
             var data = _commissions_Paginated.Records;
@@ -73,6 +73,11 @@ namespace API_GraphQL.Application.Services
             if (sincePostingDate != null && beforePostingDate != null)
             {
                 data = data.Where(p => p.PostingDate.Date >= sincePostingDate.Date && p.PostingDate.Date <= beforePostingDate.Date).ToList();
+            }
+
+            if (orderId != null && orderId != Guid.Empty)
+            {
+                data = data.Where(p => p.OrderId == orderId).ToList();
             }
 
             int positionSinceId;
