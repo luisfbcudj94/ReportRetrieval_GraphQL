@@ -11,6 +11,7 @@
 @inject ICommissionsService _commissionsService;
 @inject ICSVService _CSVService;
 
+<Preload LoadingText="Loading..." />
 
 <div class="content content-dashboard">
 
@@ -86,25 +87,38 @@
 
     private List<Commissions>? dataToExport = new List<Commissions>();
 
+    [Inject] protected PreloadService PreloadService { get; set; } = default!;
+
     protected override async Task OnInitializedAsync()
     {
+
         SetData();
         await GetCommissions();
     }
 
     private async Task GetCommissions()
     {
+        try
+        {
+            PreloadService.Show(SpinnerColor.Warning);
 
-        publisherCommissions = await _commissionsService.GetCommissionsPaginated(start_date, end_date, maxCommissionId);
+            publisherCommissions = await _commissionsService.GetCommissionsPaginated(start_date, end_date, maxCommissionId);
 
-        dataToExport = publisherCommissions?.Records;
-        maxCommissionId = publisherCommissions?.MaxCommissionId;
-        payloadComplete = publisherCommissions?.PayloadComplete;
-        dataCount = publisherCommissions?.Records?.Count;
-        totalItems = publisherCommissions?.Count;
-        numberOfRequest += 1;
-
-
+            dataToExport = publisherCommissions?.Records;
+            maxCommissionId = publisherCommissions?.MaxCommissionId;
+            payloadComplete = publisherCommissions?.PayloadComplete;
+            dataCount = publisherCommissions?.Records?.Count;
+            totalItems = publisherCommissions?.Count;
+            numberOfRequest += 1;
+        }
+        catch (Exception ex)
+        {
+            throw ex;
+        }
+        finally
+        {
+            PreloadService.Hide();
+        }
     }
 
     private async Task Search()
@@ -131,6 +145,8 @@
     {
         try
         {
+            PreloadService.Show(SpinnerColor.Warning);
+
             await jsRuntime.InvokeAsync<object>("eval", @"
                 window.saveAsFile = function(filename, data) {
                     const blob = new Blob([data], { type: 'text/csv' });
@@ -145,29 +161,41 @@
                 }
             ");
 
-        string csvContent = ConvertToCsv(dataToExport);
-        string fileName = "publisherCommissions.csv";
-        await jsRuntime.InvokeAsync<object>("saveAsFile", fileName, csvContent);
-            
+            string csvContent = ConvertToCsv(dataToExport);
+            string fileName = "publisherCommissions.csv";
+
+            if (!string.IsNullOrEmpty(csvContent))
+            {
+                await jsRuntime.InvokeAsync<object>("saveAsFile", fileName, csvContent);
+            }
         }
         catch (Exception ex)
         {
             Console.WriteLine("Error downloading CSV: " + ex.Message);
         }
+        finally
+        {
+            PreloadService.Hide();
+        }
     }
 
-    private string ConvertToCsv(List<Commissions> commissions)
+    private string ConvertToCsv(List<Commissions>? commissions)
     {
-        StringBuilder csvBuilder = new StringBuilder();
-
-        csvBuilder.AppendLine("CommissionId,AdvertiserName,ActionType,SaleAmountUsd,OrderDiscountUsd,PubCommissionAmountUsd,ActionTrackerName,WebsiteName,Aid,PostingDate,EventDate,OrderId,Coupon,IsCrossDevice");
-
-        foreach (var commission in commissions)
+        if (commissions != null)
         {
-            csvBuilder.AppendLine($"{commission.CommissionId},{commission.AdvertiserName},{commission.ActionType},{commission.SaleAmountUsd},{commission.OrderDiscountUsd},{commission.PubCommissionAmountUsd},{commission.ActionTrackerName},{commission.WebsiteName},{commission.Aid},{commission.PostingDate},{commission.EventDate},{commission.OrderId},{commission.Coupon},{commission.IsCrossDevice}");
+            StringBuilder csvBuilder = new StringBuilder();
+
+            csvBuilder.AppendLine("CommissionId,AdvertiserName,ActionType,SaleAmountUsd,OrderDiscountUsd,PubCommissionAmountUsd,ActionTrackerName,WebsiteName,Aid,PostingDate,EventDate,OrderId,Coupon,IsCrossDevice");
+
+            foreach (var commission in commissions)
+            {
+                csvBuilder.AppendLine($"{commission.CommissionId},{commission.AdvertiserName},{commission.ActionType},{commission.SaleAmountUsd},{commission.OrderDiscountUsd},{commission.PubCommissionAmountUsd},{commission.ActionTrackerName},{commission.WebsiteName},{commission.Aid},{commission.PostingDate},{commission.EventDate},{commission.OrderId},{commission.Coupon},{commission.IsCrossDevice}");
+            }
+
+            return csvBuilder.ToString();
         }
 
-        return csvBuilder.ToString();
+        return string.Empty;
     }
     
 
