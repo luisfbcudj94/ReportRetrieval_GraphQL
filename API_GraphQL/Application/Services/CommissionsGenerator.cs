@@ -17,6 +17,7 @@ namespace API_GraphQL.Application.Services
         public List<Commissions> GenerateCommissionsList(int numberOfCommissions)
         {
             var commissionsList = new List<Commissions>();
+            var uniqueGuids = Enumerable.Range(1, 300).Select(_ => Guid.NewGuid()).ToList();
 
             for (int i = 0; i < numberOfCommissions; i++)
             {
@@ -35,7 +36,7 @@ namespace API_GraphQL.Application.Services
                     PostingDate = DateTime.UtcNow.AddDays(-GenerateRandomInt(1, 3)),
                     //EventDate = DateTime.UtcNow.AddDays(GenerateRandomInt(i,i+5)),
                     EventDate = new DateTime(2024, 2, 27),
-                    OrderId =  Guid.NewGuid(),
+                    OrderId = uniqueGuids[GenerateRandomInt(0, 299)],
                     Coupon = "Coupon" + i,
                     IsCrossDevice = GenerateRandomInt(i, i + 5) % 2 == 0
                 });

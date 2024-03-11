@@ -5,6 +5,6 @@ namespace FrontEnd_GraphQL.Application.Interfaces
 {
     public interface ICommissionsService
     {
-        Task<PublisherCommissions> GetCommissionsPaginated(DateTime sincePostingDate, DateTime beforePostingDate, string? sinceCommissionId = null);
+        Task<PublisherCommissions> GetCommissionsPaginated(DateTime sincePostingDate, DateTime beforePostingDate, string? sinceCommissionId = null, string? orderId = null);
     }
 }

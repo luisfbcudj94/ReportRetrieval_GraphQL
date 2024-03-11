@@ -1,7 +1,9 @@
-﻿using FrontEnd_GraphQL.Application.Interfaces;
+﻿using BootstrapBlazor.Components;
+using FrontEnd_GraphQL.Application.Interfaces;
 using FrontEnd_GraphQL.Application.Models;
 using FrontEnd_GraphQL.Helpers.Paging;
 using GraphQL.Client.Abstractions;
+using System;
 using static System.Net.WebRequestMethods;
 
 namespace FrontEnd_GraphQL.Application.Services
@@ -17,17 +19,26 @@ namespace FrontEnd_GraphQL.Application.Services
             _graphQLClientService = graphQLClientService;
         }
 
-        public async Task<PublisherCommissions> GetCommissionsPaginated(DateTime sincePostingDate, DateTime beforePostingDate, String? sinceCommissionId = null)
+        public async Task<PublisherCommissions> GetCommissionsPaginated(DateTime sincePostingDate, DateTime beforePostingDate, string? sinceCommissionId = null, string? orderId = null)
         {
 
             if (sinceCommissionId == null)
             {
                 sinceCommissionId = Guid.Empty.ToString();
             }
+
+            orderId = orderId?.Replace(" ", "");
+            Guid guid;
+            if (string.IsNullOrEmpty(orderId) || !Guid.TryParse(orderId, out guid))
+            {
+                orderId = Guid.Empty.ToString();
+            }
+
             var query = $@"
                 {{
                     publisherCommissions(
                         sinceCommissionId: ""{sinceCommissionId}""
+                        orderId: ""{orderId}""
                         sincePostingDate: ""{sincePostingDate.ToString("yyyy-MM-dd HH:mm:ss")}""
                         beforePostingDate: ""{beforePostingDate.ToString("yyyy-MM-dd HH:mm:ss")}""
 
