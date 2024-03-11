@@ -8,9 +8,9 @@ namespace FrontEnd_GraphQL.Application.Services
 {
     public class GraphQLClientService: IGraphQLClientService
     {
-        //private GraphQLHttpClient graphQLClient = new GraphQLHttpClient("https://localhost:7012/graphql", new NewtonsoftJsonSerializer());
+        private GraphQLHttpClient graphQLClient = new GraphQLHttpClient("https://localhost:7012/graphql", new NewtonsoftJsonSerializer());
 
-        private GraphQLHttpClient graphQLClient = new GraphQLHttpClient("https://apigraphql20240305094849.azurewebsites.net/graphql", new NewtonsoftJsonSerializer());
+        //private GraphQLHttpClient graphQLClient = new GraphQLHttpClient("https://apigraphql20240305094849.azurewebsites.net/graphql", new NewtonsoftJsonSerializer());
 
 
         public GraphQLClientService()

@@ -33,8 +33,9 @@
         </div
 
         <div class="container-summary">
-            <p>Total items: <b>@publisherCommissions?.Count</b></p>
-            <p>Items displayed: <b>@publisherCommissions?.Records?.Count</b></p>
+            <p>Total items: <b>@totalItems</b></p>
+            <p>Items displayed: <b>@dataCount</b></p>
+            <p>Number of request: <b>@numberOfRequest</b></p>
 
             @if (payloadComplete == true || payloadComplete == null)
             {
@@ -73,10 +74,12 @@
     // Data
     private PublisherCommissions publisherCommissions = new();
     private string? maxCommissionId = Guid.Empty.ToString();
-    private bool? payloadComplete = false;
+    private bool? payloadComplete = null;
     private int? dataCount = 0;
+    private int? totalItems = 0;
+    private int numberOfRequest = 0;
 
-    private DateTime start_date = DateTime.UtcNow.AddDays(-30);
+    private DateTime start_date = DateTime.UtcNow.AddDays(-7);
     private DateTime end_date = DateTime.UtcNow;
 
     private Random random = new();
@@ -90,17 +93,31 @@
 
     private async Task GetCommissions()
     {
+
         publisherCommissions = await _commissionsService.GetCommissionsPaginated(start_date, end_date, maxCommissionId);
+
+        // numberOfRequest = (maxCommissionId != null && maxCommissionId != Guid.Empty.ToString() ) ? numberOfRequest + 1 : 0;
 
         dataToExport = publisherCommissions?.Records;
         maxCommissionId = publisherCommissions?.MaxCommissionId;
         payloadComplete = publisherCommissions?.PayloadComplete;
         dataCount = publisherCommissions?.Records?.Count;
+        totalItems = publisherCommissions?.Count;
+
+        // numberOfRequest = (maxCommissionId != null && maxCommissionId != Guid.Empty.ToString() ) ? numberOfRequest + 1 : 0;
+
+        numberOfRequest += 1;
+
+
     }
 
     private async Task Search()
     {
         maxCommissionId = Guid.Empty.ToString();
+        numberOfRequest = 0;
+        dataCount = 0;
+        totalItems = 0;
+        payloadComplete = null;
         await GetCommissions();
     }
 

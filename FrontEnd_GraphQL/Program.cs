@@ -15,7 +15,9 @@ builder.Services.AddScoped<ICommissionsService, CommissionsService>();
 builder.Services.AddScoped<IGraphQLClientService, GraphQLClientService>();
 builder.Services.AddScoped<ICSVService, CSVService>();
 
-builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri("https://apigraphql20240305094849.azurewebsites.net/graphql") });
+//builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri("https://apigraphql20240305094849.azurewebsites.net/graphql") });
+
+builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri("https://localhost:7012/graphql") });
 
 
 await builder.Build().RunAsync();
