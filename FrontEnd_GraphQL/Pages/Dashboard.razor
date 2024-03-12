@@ -75,7 +75,7 @@
 
             @if (dataCount != null && dataCount > 0)
             {
-                <button type="button" class="btn btn-outline-success" @onclick="DownloadCSV">Download</button>
+                <button type="button" class="btn btn-outline-success" @onclick="DownloadCSV">download data</button>
             }
             else
             {
@@ -147,7 +147,7 @@
         {
             PreloadService.Show(SpinnerColor.Warning);
 
-            publisherCommissions = await _commissionsService.GetCommissionsPaginated(start_date?.ToString("yyyy-MM-dd HH:mm:ss"), end_date?.ToString("yyyy-MM-dd HH:mm:ss"), maxCommissionId, orderId, pageNumber, pageSize);
+            publisherCommissions = await RequestCommisions();
 
             if (publisherCommissions != null)
             {
@@ -175,6 +175,13 @@
         {
             PreloadService.Hide();
         }
+    }
+
+    private async Task<PublisherCommissions> RequestCommisions()
+    {
+        var response = await _commissionsService.GetCommissionsPaginated(start_date?.ToString("yyyy-MM-dd HH:mm:ss"), end_date?.ToString("yyyy-MM-dd HH:mm:ss"), maxCommissionId, orderId, pageNumber, pageSize);
+
+        return response;
     }
 
     private async Task Search()
@@ -272,13 +279,24 @@
                 }
             ");
 
-            string csvContent = ConvertToCsv(dataToExport);
+            var auxPageSize = pageSize;
+            var auxPageNumber = pageNumber;
+
+            pageSize = int.MaxValue;
+            pageNumber = 1;
+            var excelData = await RequestCommisions();
+
+            string csvContent = ConvertToCsv(excelData?.Records);
             string fileName = "publisherCommissions.csv";
 
             if (!string.IsNullOrEmpty(csvContent))
             {
                 await jsRuntime.InvokeAsync<object>("saveAsFile", fileName, csvContent);
             }
+
+            pageSize = auxPageSize;
+            pageNumber = auxPageNumber;
+            await GetCommissions();
         }
         catch (Exception ex)
         {
