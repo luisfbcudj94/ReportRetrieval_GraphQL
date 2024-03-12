@@ -66,6 +66,7 @@ namespace FrontEnd_GraphQL.Application.Services
                               orderId
                               coupon
                               isCrossDevice
+                              affiliateNetwork
                             }
                         }
                     }",

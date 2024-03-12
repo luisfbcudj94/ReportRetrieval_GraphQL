@@ -16,5 +16,6 @@
         public Guid OrderId { get; set; }
         public string Coupon { get; set; }
         public bool IsCrossDevice { get; set; }
+        public string AffiliateNetwork { get; set; }
     }
 }

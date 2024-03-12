@@ -314,11 +314,11 @@
         {
             StringBuilder csvBuilder = new StringBuilder();
 
-            csvBuilder.AppendLine("CommissionId,AdvertiserName,ActionType,SaleAmountUsd,OrderDiscountUsd,PubCommissionAmountUsd,ActionTrackerName,WebsiteName,Aid,PostingDate,EventDate,OrderId,Coupon,IsCrossDevice");
+            csvBuilder.AppendLine("CommissionId,AdvertiserName,ActionType,SaleAmountUsd,OrderDiscountUsd,PubCommissionAmountUsd,ActionTrackerName,WebsiteName,Aid,PostingDate,EventDate,OrderId,Coupon,IsCrossDevice,AffiliateNetwork");
 
             foreach (var commission in commissions)
             {
-                csvBuilder.AppendLine($"{commission.CommissionId},{commission.AdvertiserName},{commission.ActionType},{commission.SaleAmountUsd},{commission.OrderDiscountUsd},{commission.PubCommissionAmountUsd},{commission.ActionTrackerName},{commission.WebsiteName},{commission.Aid},{commission.PostingDate},{commission.EventDate},{commission.OrderId},{commission.Coupon},{commission.IsCrossDevice}");
+                csvBuilder.AppendLine($"{commission.CommissionId},{commission.AdvertiserName},{commission.ActionType},{commission.SaleAmountUsd},{commission.OrderDiscountUsd},{commission.PubCommissionAmountUsd},{commission.ActionTrackerName},{commission.WebsiteName},{commission.Aid},{commission.PostingDate},{commission.EventDate},{commission.OrderId},{commission.Coupon},{commission.IsCrossDevice},{commission.AffiliateNetwork}");
             }
 
             return csvBuilder.ToString();
