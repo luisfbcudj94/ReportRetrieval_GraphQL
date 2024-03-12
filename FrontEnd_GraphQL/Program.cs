@@ -20,7 +20,7 @@ builder.Services.AddScoped<ICSVService, CSVService>();
 
 //builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri("https://apigraphql20240305094849.azurewebsites.net/graphql") });
 
-builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri("https://localhost:7012/graphql") });
+builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri("http://localhost:5222/graphql") });
 
 
 await builder.Build().RunAsync();

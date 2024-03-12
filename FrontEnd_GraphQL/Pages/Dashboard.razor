@@ -17,27 +17,59 @@
 
     <div class="container-table">
 
-        <div class="row container-filters">
-            <div class="col">
-                <label for="start_date" class="form-label">Start Date:</label>
-                <input type="date" class="form-control" id="start_date" @bind="start_date" />
-            </div>
-            <div class="col">
-                <label for="end_date" class="form-label">End Date:</label>
-                <input type="date" class="form-control" id="end_date" @bind="end_date" />
-            </div>
-            <div class="col">
-                <label for="orderId" class="form-label">Order Id:</label>
-                <input type="text" class="form-control" id="orderId" @bind="orderId" />
+        <div class="container container-filters">
+            <div class="row">
+
+                <div class="col p-2 w-90">
+                    <h2 class="color-title">Filters</h2>
+                    <div class="mt-3">Select the field by which you want to filter the data</div>
+
+                    <div class="form-check mt-4">
+                        <input class="form-check-input" type="radio" name="flexRadioDefault" id="flexRadioDefault1" @onchange="HandleShowFilterDateChange" checked>
+                        <label class="form-check-label" for="flexRadioDefault1">
+                            By Post date
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="flexRadioDefault" id="flexRadioDefault2" @onchange="HandleShowFilterOrderIdChange">
+                        <label class="form-check-label" for="flexRadioDefault2">
+                            By Order Id
+                        </label>
+                    </div>
+                </div>
+
+                <div class="col p-2 w-90">
+                    @if (showFilterDate && !showFilterOrderId)
+                    {
+                        <div class="col">
+                            <label for="start_date" class="form-label">Start Date:</label>
+                            <input type="date" class="form-control" id="start_date" @bind="start_date" />
+                        </div>
+                        <div class="col">
+                            <label for="end_date" class="form-label">End Date:</label>
+                            <input type="date" class="form-control" id="end_date" @bind="end_date" />
+                        </div>
+                    }
+
+                    @if (!showFilterDate && showFilterOrderId)
+                    {
+                        <div class="col">
+                            <label for="orderId" class="form-label">Order Id:</label>
+                            <input type="text" class="form-control" id="orderId" @bind="orderId" />
+                        </div>
+                    }
+                    
+                    <div class="row">
+                        <div class="col mt-3 d-flex justify-content-center">
+                            <button class="btn btn-primary w-50" @onclick="Search">Search</button>
+                        </div>
+                    </div>
+
+                </div>
             </div>
         </div>
-        <div class="row mt-3 container-search">
-            <div class="col">
-                <button class="btn btn-primary" @onclick="Search">Search</button>
-            </div>
-        </div
 
-        <div class="container-summary">
+        <div class="container-summary mt-4">
             <p>Total items: <b>@totalItems</b></p>
             <p>Items displayed: <b>@dataCount</b></p>
 
@@ -49,10 +81,8 @@
             {
                 <button type="button" class="btn btn-outline-success" disabled>Download</button>
             }
-            
         </div>
         
-
         <Table_custom 
             data="@dataToExport"
             pageNumber="pageNumber"
@@ -83,14 +113,18 @@
     private int numberOfRequest;
 
     // Paginated
-    public int pageNumber = 1;
-    public int pageSize = 25;
+    public int pageNumber;
+    public int pageSize;
     public int pageCount = 0;
     public bool hasPrevious = false;
     public bool hasNext = false;
 
-    private DateTime start_date = DateTime.UtcNow.AddDays(-7);
-    private DateTime end_date = DateTime.UtcNow;
+    // Filters
+    private bool showFilterDate = true;
+    private bool showFilterOrderId = false;
+
+    private DateTime? start_date;
+    private DateTime? end_date;
     private string? orderId;
 
     private Random random = new();
@@ -103,6 +137,7 @@
     {
 
         SetData();
+        SetDates();
         await GetCommissions();
     }
 
@@ -112,7 +147,7 @@
         {
             PreloadService.Show(SpinnerColor.Warning);
 
-            publisherCommissions = await _commissionsService.GetCommissionsPaginated(start_date, end_date, maxCommissionId, orderId, pageNumber, pageSize);
+            publisherCommissions = await _commissionsService.GetCommissionsPaginated(start_date?.ToString("yyyy-MM-dd HH:mm:ss"), end_date?.ToString("yyyy-MM-dd HH:mm:ss"), maxCommissionId, orderId, pageNumber, pageSize);
 
             if (publisherCommissions != null)
             {
@@ -144,8 +179,25 @@
 
     private async Task Search()
     {
-        SetData();
-        await GetCommissions();
+        if (showFilterOrderId)
+        {
+            Guid orderIdGuid;
+            if (Guid.TryParse(orderId, out orderIdGuid))
+            {
+                SetData();
+                await GetCommissions();
+            }
+            else
+            {
+                throw new ArgumentException("The entered order ID is not a valid GUID.");
+            }
+        }
+        else
+        {
+            SetData();
+            await GetCommissions();
+        }
+
     }
 
     private void SetData()
@@ -155,6 +207,14 @@
         dataCount = 0;
         totalItems = 0;
         payloadComplete = null;
+        pageNumber = 1;
+        pageSize = 25;
+    }
+
+    private void SetDates()
+    {
+        start_date = DateTime.UtcNow.AddDays(-7);
+        end_date = DateTime.UtcNow;
     }
 
     public async Task SetDataRequest(PaginatedArgs args)
@@ -170,6 +230,26 @@
         }
 
         await GetCommissions();
+    }
+
+    void HandleShowFilterDateChange(ChangeEventArgs args)
+    {
+        showFilterDate = args.Value.ToString() == "on" ? true : false;
+        showFilterOrderId = false;
+
+        if (showFilterDate)
+        {
+            SetDates();
+            orderId = null;
+        }
+    }
+
+    void HandleShowFilterOrderIdChange(ChangeEventArgs args)
+    {
+        start_date = null;
+        end_date = null;
+        showFilterDate = false;
+        showFilterOrderId = args.Value.ToString() == "on" ? true : false;
     }
 
     private async Task DownloadCSV()

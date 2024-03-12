@@ -1,6 +1,7 @@
 ﻿using API_GraphQL.Application.Interfaces;
 using API_GraphQL.DataManager.Paging;
 using API_GraphQL.Domain.Models;
+using Microsoft.AspNetCore.Http;
 
 namespace API_GraphQL.Application.Services
 {
@@ -53,35 +54,38 @@ namespace API_GraphQL.Application.Services
         /// <param name="endDate">End date of the date range to filter.</param>
         /// <returns>A paginated list of commissions.</returns>
         public PaginatedList GetCommissionsPaginated
-                (DateTime sincePostingDate, 
-                DateTime beforePostingDate, 
-                Guid? sinceCommissionId = null, 
-                Guid? orderId = null,
+                (string? sincePostingDate = null,
+                string? beforePostingDate = null,
+                string? sinceCommissionId = null,
+                string? orderId = null,
                 int pageNumber = 1,
                 int pageSize = 25)
         {
 
             var data = _commissions_Paginated.Records;
 
-            if (sincePostingDate < DateTime.Today.AddYears(-20))
-            {
-                throw new ArgumentException("sincePostingDate must be within the range of 20 years ago to today.");
-            }
-
-            if (beforePostingDate < DateTime.Today.AddYears(-20))
-            {
-                throw new ArgumentException("beforePostingDate must be within the range from today minus 20 years to today plus 20 years.");
-            }
-
-
             if (sincePostingDate != null && beforePostingDate != null)
             {
-                data = data.Where(p => p.PostingDate.Date >= sincePostingDate.Date && p.PostingDate.Date <= beforePostingDate.Date).ToList();
+                var startDate = DateTime.Parse(sincePostingDate);
+                var endDate = DateTime.Parse(beforePostingDate);
+
+                if (startDate < DateTime.Today.AddYears(-20) || startDate > DateTime.Today.AddDays(1))
+                {
+                    throw new ArgumentException("sincePostingDate must be within the range of 20 years ago to today.");
+                }
+
+                if (endDate < DateTime.Today.AddYears(-20) || endDate > DateTime.Today.AddYears(20))
+                {
+                    throw new ArgumentException("beforePostingDate must be within the range from today minus 20 years to today plus 20 years.");
+                }
+
+                data = data.Where(p => p.PostingDate.Date >= startDate.Date && p.PostingDate.Date <= endDate.Date).ToList();
             }
 
-            if (orderId != null && orderId != Guid.Empty)
+            Guid orderIdGuid;
+            if (Guid.TryParse(orderId, out orderIdGuid))
             {
-                data = data.Where(p => p.OrderId == orderId).ToList();
+                data = data.Where(p => p.OrderId == orderIdGuid).ToList();
             }
 
             var result = data.

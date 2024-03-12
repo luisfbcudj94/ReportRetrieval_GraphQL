@@ -19,10 +19,10 @@ namespace API_GraphQL.Application.Interfaces
         /// <returns>A paginated list of publisher commissions.</returns>
         PaginatedList GetCommissionsPaginated
             (
-                DateTime sincePostingDate, 
-                DateTime beforePostingDate, 
-                Guid? sinceCommissionId = null, 
-                Guid? orderId = null, 
+                string? sincePostingDate = null,
+                string? beforePostingDate = null,
+                string? sinceCommissionId = null,
+                string? orderId = null, 
                 int pageNumber = 1, 
                 int pageSize = 25
             );
