@@ -73,13 +73,13 @@
             <p>Total items: <b>@totalItems</b></p>
             <p>Items displayed: <b>@dataCount</b></p>
 
-            @if (dataCount != null && dataCount > 0)
+            @if (dataCount != null && dataCount > 0 && showFilterDate)
             {
                 <button type="button" class="btn btn-outline-success" @onclick="DownloadCSV">download data</button>
             }
             else
             {
-                <button type="button" class="btn btn-outline-success" disabled>Download</button>
+                <button type="button" class="btn btn-outline-success" disabled>download data</button>
             }
         </div>
         
