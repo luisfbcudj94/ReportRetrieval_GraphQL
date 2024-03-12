@@ -36,10 +36,18 @@
                             By Order Id
                         </label>
                     </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="flexRadioDefault" id="flexRadioDefault3" @onchange="HandleShowFilterANChange">
+                        <label class="form-check-label" for="flexRadioDefault3">
+                            By Affiliate Network
+                        </label>
+                    </div>
+
+
                 </div>
 
                 <div class="col p-2 w-90">
-                    @if (showFilterDate && !showFilterOrderId)
+                    @if (showFilterDate && !showFilterOrderId && !showFilterAN)
                     {
                         <div class="col">
                             <label for="start_date" class="form-label">Start Date:</label>
@@ -51,20 +59,41 @@
                         </div>
                     }
 
-                    @if (!showFilterDate && showFilterOrderId)
+                    @if (!showFilterDate && showFilterOrderId && !showFilterAN)
                     {
                         <div class="col">
                             <label for="orderId" class="form-label">Order Id:</label>
                             <input type="text" class="form-control" id="orderId" @bind="orderId" />
                         </div>
                     }
-                    
-                    <div class="row">
-                        <div class="col mt-3 d-flex justify-content-center">
-                            <button class="btn btn-primary w-50" @onclick="Search">Search</button>
-                        </div>
-                    </div>
 
+                    @if (showFilterAN && !showFilterDate && !showFilterOrderId)
+                    {
+                        <h4 class="color-title mb-3">Choose an affiliate network</h4>
+                        <div class="dropup-center dropup mb-3">
+                            <button class="btn btn-info dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                Affiliate Network
+                            </button>
+                            <ul class="dropdown-menu">
+                                @foreach (var item in affiliateNetworkOptions)
+                                {
+                                    <li>
+                                        <a class="dropdown-item" @onclick="() => SetAffiliateNetwork(item)">@item</a>
+                                    </li>
+                                }
+                            </ul>
+                        </div>
+                        <span>Affiliate network selected: <b>@ANSelected</b></span>
+                    }
+                    
+                    @if (!showFilterAN)
+                    {
+                        <div class="row">
+                            <div class="col mt-3 d-flex justify-content-center">
+                                <button class="btn btn-primary w-50" @onclick="Search">Search</button>
+                            </div>
+                        </div>
+                    }
                 </div>
             </div>
         </div>
@@ -122,6 +151,8 @@
     // Filters
     private bool showFilterDate = true;
     private bool showFilterOrderId = false;
+    private bool showFilterAN = false;
+    private string? ANSelected;
 
     private DateTime? start_date;
     private DateTime? end_date;
@@ -132,6 +163,14 @@
     private List<Commissions>? dataToExport = new List<Commissions>();
 
     [Inject] protected PreloadService PreloadService { get; set; } = default!;
+    List<string> affiliateNetworkOptions = new List<string>
+    {
+        "Impact Radius",
+        "Rakuten",
+        "Commission Junction",
+        "WildFire"
+    };
+
 
     protected override async Task OnInitializedAsync()
     {
@@ -243,6 +282,7 @@
     {
         showFilterDate = args.Value.ToString() == "on" ? true : false;
         showFilterOrderId = false;
+        showFilterAN = false;
 
         if (showFilterDate)
         {
@@ -256,7 +296,22 @@
         start_date = null;
         end_date = null;
         showFilterDate = false;
+        showFilterAN = false;
         showFilterOrderId = args.Value.ToString() == "on" ? true : false;
+    }
+
+    void HandleShowFilterANChange(ChangeEventArgs args)
+    {
+        showFilterAN = args.Value.ToString() == "on" ? true : false;
+        showFilterDate = false;
+        showFilterOrderId = false;
+        start_date = null;
+        end_date = null;
+    }
+
+    void SetAffiliateNetwork(string affiliateNetwork)
+    {
+        ANSelected = affiliateNetwork;
     }
 
     private async Task DownloadCSV()
