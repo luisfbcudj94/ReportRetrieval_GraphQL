@@ -1,6 +1,7 @@
 ﻿using API_GraphQL.Application.Interfaces;
 using API_GraphQL.DataManager.Paging;
 using API_GraphQL.Domain.Models;
+using Microsoft.AspNetCore.Http;
 
 namespace API_GraphQL.Application.Services
 {
@@ -52,47 +53,45 @@ namespace API_GraphQL.Application.Services
         /// <param name="startDate">Start date of the date range to filter.</param>
         /// <param name="endDate">End date of the date range to filter.</param>
         /// <returns>A paginated list of commissions.</returns>
-        public PaginatedList GetCommissionsPaginated(DateTime sincePostingDate, DateTime beforePostingDate, Guid? sinceCommissionId = null, Guid? orderId = null)
+        public PaginatedList GetCommissionsPaginated(
+                string? sincePostingDate = null,
+                string? beforePostingDate = null,
+                string? sinceCommissionId = null,
+                string? orderId = null,
+                string? affiliateNetwork = null,
+                int pageNumber = 1,
+                int pageSize = 25)
         {
 
             var data = _commissions_Paginated.Records;
-            var pageSize = _pageSize;
-            var pageNumber = _pageNumber;
-
-            if (sincePostingDate < DateTime.Today.AddYears(-20))
-            {
-                throw new ArgumentException("sincePostingDate must be within the range of 20 years ago to today.");
-            }
-
-            if (beforePostingDate < DateTime.Today.AddYears(-20))
-            {
-                throw new ArgumentException("beforePostingDate must be within the range from today minus 20 years to today plus 20 years.");
-            }
-
 
             if (sincePostingDate != null && beforePostingDate != null)
             {
-                data = data.Where(p => p.PostingDate.Date >= sincePostingDate.Date && p.PostingDate.Date <= beforePostingDate.Date).ToList();
+                var startDate = DateTime.Parse(sincePostingDate);
+                var endDate = DateTime.Parse(beforePostingDate);
+
+                if (startDate < DateTime.Today.AddYears(-20) || startDate > DateTime.Today.AddDays(1))
+                {
+                    throw new ArgumentException("sincePostingDate must be within the range of 20 years ago to today.");
+                }
+
+                if (endDate < DateTime.Today.AddYears(-20) || endDate > DateTime.Today.AddYears(20))
+                {
+                    throw new ArgumentException("beforePostingDate must be within the range from today minus 20 years to today plus 20 years.");
+                }
+
+                data = data.Where(p => p.PostingDate.Date >= startDate.Date && p.PostingDate.Date <= endDate.Date).ToList();
             }
 
-            if (orderId != null && orderId != Guid.Empty)
+            Guid orderIdGuid;
+            if (Guid.TryParse(orderId, out orderIdGuid))
             {
-                data = data.Where(p => p.OrderId == orderId).ToList();
+                data = data.Where(p => p.OrderId == orderIdGuid).ToList();
             }
 
-            int positionSinceId;
-
-            if (sinceCommissionId != null && sinceCommissionId != Guid.Empty)
+            if (!string.IsNullOrEmpty(affiliateNetwork))
             {
-                positionSinceId = data.FindIndex(p => p.CommissionId == sinceCommissionId);
-                if (positionSinceId != -1)
-                {
-                    pageNumber = (int)Math.Floor((decimal)(positionSinceId + 1) / pageSize) + 1;
-                }
-                else
-                {
-                    data = new List<Commissions>();
-                }
+                data = data.Where(p => p.AffiliateNetwork == affiliateNetwork).ToList();
             }
 
             var result = data.
@@ -102,8 +101,10 @@ namespace API_GraphQL.Application.Services
             PaginatedList paginatedResult = new PaginatedList();
             paginatedResult.Records = result;
             paginatedResult.Count = data.Count;
-            paginatedResult.MaxCommissionId = result.Count < _pageSize ? null :  result[result.Count - 1].CommissionId;
+            paginatedResult.MaxCommissionId = result.Count < pageSize ? null : result[result.Count - 1].CommissionId;
             paginatedResult.PayloadComplete = result.Count == 0 ? null : data[data.Count - 1] == result[result.Count - 1];
+            paginatedResult.PageNumber = pageNumber;
+            paginatedResult.PageSize = pageSize;
 
             return paginatedResult;
         }

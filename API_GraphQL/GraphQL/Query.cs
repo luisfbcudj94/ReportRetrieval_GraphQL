@@ -32,9 +32,9 @@ namespace API_GraphQL.GraphQL
         /// <param name="startDate">Start date of the date range to filter.</param>
         /// <param name="endDate">End date of the date range to filter.</param>
         /// <returns>A paginated list of publisher commissions.</returns>
-        public PaginatedList PublisherCommissions(DateTime sincePostingDate, DateTime beforePostingDate, Guid? sinceCommissionId = null, Guid? orderId = null)
+        public PaginatedList PublisherCommissions(string? sincePostingDate = null, string? beforePostingDate = null, string? sinceCommissionId = null, string? orderId = null, string? affiliateNetwork = null, int pageNumber = 1, int pageSize = 25)
         {
-            var response = _commisionsService.GetCommissionsPaginated(sincePostingDate, beforePostingDate, sinceCommissionId, orderId);
+            var response = _commisionsService.GetCommissionsPaginated(sincePostingDate, beforePostingDate, sinceCommissionId, orderId, affiliateNetwork, pageNumber, pageSize);
 
             return response;
         }

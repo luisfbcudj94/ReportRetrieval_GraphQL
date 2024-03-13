@@ -2,6 +2,7 @@
 using FrontEnd_GraphQL.Application.Interfaces;
 using FrontEnd_GraphQL.Application.Models;
 using FrontEnd_GraphQL.Helpers.Paging;
+using GraphQL;
 using GraphQL.Client.Abstractions;
 using System;
 using static System.Net.WebRequestMethods;
@@ -19,65 +20,87 @@ namespace FrontEnd_GraphQL.Application.Services
             _graphQLClientService = graphQLClientService;
         }
 
-        public async Task<PublisherCommissions> GetCommissionsPaginated(DateTime sincePostingDate, DateTime beforePostingDate, string? sinceCommissionId = null, string? orderId = null)
+        public async Task<PublisherCommissions> GetCommissionsPaginated(
+                string? _sincePostingDate = null, 
+                string? _beforePostingDate = null, 
+                string? _sinceCommissionId = null, 
+                string? _orderId = null,
+                string? _affiliateNetwork = null,
+                int _pageNumber = 1, 
+                int _pageSize = 25)
         {
 
-            if (sinceCommissionId == null)
+            if (_sinceCommissionId == null)
             {
-                sinceCommissionId = Guid.Empty.ToString();
+                _sinceCommissionId = Guid.Empty.ToString();
             }
 
-            orderId = orderId?.Replace(" ", "");
-            Guid guid;
-            if (string.IsNullOrEmpty(orderId) || !Guid.TryParse(orderId, out guid))
+            var personAndFilmsRequest = new GraphQLRequest
             {
-                orderId = Guid.Empty.ToString();
-            }
+                Query = @"
+                    query publisherCommissions(
+                            $sincePostingDate: String,
+                            $beforePostingDate: String,
+                            $orderId: String,
+                            $affiliateNetwork: String,
+                            $pageNumber: Int,
+                            $pageSize: Int) {
+                        publisherCommissions(
+                            sincePostingDate: $sincePostingDate,
+                            beforePostingDate: $beforePostingDate,
+                            orderId: $orderId,
+                            affiliateNetwork: $affiliateNetwork
+                            pageNumber: $pageNumber,
+                            pageSize: $pageSize) {
+                            count
+                            payloadComplete
+                            maxCommissionId
+                            pageCount
+                            pageNumber
+                            pageSize
+                            hasPrevious
+                            hasNext
+                            records {
+                              commissionId
+                              advertiserName
+                              actionType
+                              saleAmountUsd
+                              orderDiscountUsd
+                              pubCommissionAmountUsd
+                              actionTrackerName
+                              websiteName
+                              aid
+                              postingDate
+                              eventDate
+                              orderId
+                              coupon
+                              isCrossDevice
+                              affiliateNetwork
+                            }
+                        }
+                    }",
+                OperationName = "publisherCommissions",
+                Variables = new
+                {
+                    sincePostingDate = _sincePostingDate,
+                    beforePostingDate = _beforePostingDate,
+                    orderId = _orderId,
+                    affiliateNetwork = _affiliateNetwork,
+                    pageNumber = _pageNumber,
+                    pageSize = _pageSize,
+                }
+            };
 
-            var query = $@"
-                {{
-                    publisherCommissions(
-                        sinceCommissionId: ""{sinceCommissionId}""
-                        orderId: ""{orderId}""
-                        sincePostingDate: ""{sincePostingDate.ToString("yyyy-MM-dd HH:mm:ss")}""
-                        beforePostingDate: ""{beforePostingDate.ToString("yyyy-MM-dd HH:mm:ss")}""
-
-                    ) {{
-                        count
-                        payloadComplete
-                        maxCommissionId
-                        records {{
-                            commissionId
-                            advertiserName
-                            actionType
-                            saleAmountUsd
-                            orderDiscountUsd
-                            pubCommissionAmountUsd
-                            actionTrackerName
-                            websiteName
-                            aid
-                            postingDate
-                            eventDate
-                            orderId
-                            coupon
-                            isCrossDevice
-                        }}
-                    }}
-                }}
-                ";
-
-            var response = await _graphQLClientService.SendQueryAsync<dynamic>(query);
+            var response = await _graphQLClientService.SendQueryAsync<dynamic>(personAndFilmsRequest);
 
             PublisherCommissions data = new();
 
             data.PayloadComplete = response?.publisherCommissions?.payloadComplete?.Value;
             data.MaxCommissionId = response?.publisherCommissions?.maxCommissionId?.Value;
             data.Count = response?.publisherCommissions?.count;
+            data.PageNumber = response?.publisherCommissions?.pageNumber;
+            data.PageSize = response?.publisherCommissions?.pageSize;
             data.Records = response?.publisherCommissions.records.ToObject<List<Commissions>>();
-
-            //Console.WriteLine($"Exporting data: from \n {response.publisherCommissions.records[0]} \n to \n {response.publisherCommissions.records[response.publisherCommissions.records.Count - 1]} \n");
-
-            //_csvService.ExportData(dataToExport);
 
             return data;
 

@@ -38,7 +38,8 @@ namespace API_GraphQL.Application.Services
                     EventDate = new DateTime(2024, 2, 27),
                     OrderId = uniqueGuids[GenerateRandomInt(0, 299)],
                     Coupon = "Coupon" + i,
-                    IsCrossDevice = GenerateRandomInt(i, i + 5) % 2 == 0
+                    IsCrossDevice = GenerateRandomInt(i, i + 5) % 2 == 0,
+                    AffiliateNetwork = GenerateAffiliateNetwork()
                 });
             }
 
@@ -57,7 +58,7 @@ namespace API_GraphQL.Application.Services
         }
         static string GenerateAdvertiser()
         {
-            List<string> comercios = new List<string>
+            List<string> data = new List<string>
             {
                 "Walmart",
                 "Amazon",
@@ -76,8 +77,21 @@ namespace API_GraphQL.Application.Services
                 "Menards"
             };
             Random rnd = new Random();
-            int index = rnd.Next(comercios.Count);
-            return comercios[index];
+            int index = rnd.Next(data.Count);
+            return data[index];
+        }
+        static string GenerateAffiliateNetwork()
+        {
+            List<string> data = new List<string>
+            {
+                "Impact Radius",
+                "Rakuten",
+                "Commission Junction",
+                "WildFire"
+            };
+            Random rnd = new Random();
+            int index = rnd.Next(data.Count);
+            return data[index];
         }
 
     }

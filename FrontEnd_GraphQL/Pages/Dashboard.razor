@@ -17,53 +17,110 @@
 
     <div class="container-table">
 
-        <div class="row container-filters">
-            <div class="col">
-                <label for="start_date" class="form-label">Start Date:</label>
-                <input type="date" class="form-control" id="start_date" @bind="start_date" />
-            </div>
-            <div class="col">
-                <label for="end_date" class="form-label">End Date:</label>
-                <input type="date" class="form-control" id="end_date" @bind="end_date" />
-            </div>
-            <div class="col">
-                <label for="orderId" class="form-label">Order Id:</label>
-                <input type="text" class="form-control" id="orderId" @bind="orderId" />
+        <div class="container container-filters">
+            <div class="row">
+
+                <div class="col p-2 w-90">
+                    <h2 class="color-title">Filters</h2>
+                    <div class="mt-3">Select the field by which you want to filter the data</div>
+
+                    <div class="form-check mt-4">
+                        <input class="form-check-input pointer" type="radio" name="flexRadioDefault" id="flexRadioDefault1" @onchange="HandleShowFilterDateChange" checked>
+                        <label class="form-check-label pointer" for="flexRadioDefault1">
+                            By Posting date
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input pointer" type="radio" name="flexRadioDefault" id="flexRadioDefault2" @onchange="HandleShowFilterOrderIdChange">
+                        <label class="form-check-label pointer" for="flexRadioDefault2">
+                            By Order Id
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input pointer" type="radio" name="flexRadioDefault" id="flexRadioDefault3" @onchange="HandleShowFilterANChange">
+                        <label class="form-check-label pointer" for="flexRadioDefault3">
+                            By Affiliate Network
+                        </label>
+                    </div>
+
+
+                </div>
+
+                <div class="col p-2 w-90">
+                    @if (showFilterDate && !showFilterOrderId && !showFilterAN)
+                    {
+                        <div class="col">
+                            <label for="start_date" class="form-label">Start Date:</label>
+                            <input type="date" class="form-control" id="start_date" @bind="start_date" />
+                        </div>
+                        <div class="col">
+                            <label for="end_date" class="form-label">End Date:</label>
+                            <input type="date" class="form-control" id="end_date" @bind="end_date" />
+                        </div>
+                    }
+
+                    @if (!showFilterDate && showFilterOrderId && !showFilterAN)
+                    {
+                        <div class="col">
+                            <label for="orderId" class="form-label">Order Id:</label>
+                            <input type="text" class="form-control" id="orderId" @bind="orderId" />
+                        </div>
+                    }
+
+                    @if (showFilterAN && !showFilterDate && !showFilterOrderId)
+                    {
+                        <h4 class="color-title mb-3">Choose an affiliate network</h4>
+                        <div class="dropup-center dropup mb-3">
+                            <button class="btn btn-info dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                Affiliate Network
+                            </button>
+                            <ul class="dropdown-menu">
+                                @foreach (var item in affiliateNetworkOptions)
+                                {
+                                    <li>
+                                        <a class="dropdown-item pointer" @onclick="() => SetAffiliateNetwork(item)">@item</a>
+                                    </li>
+                                }
+                            </ul>
+                        </div>
+                        <span>Affiliate network selected: <b>@ANSelected</b></span>
+                    }
+                    
+                    @if (!showFilterAN)
+                    {
+                        <div class="row">
+                            <div class="col mt-3 d-flex justify-content-center">
+                                <button class="btn btn-primary w-50" @onclick="Search">Search</button>
+                            </div>
+                        </div>
+                    }
+                </div>
             </div>
         </div>
-        <div class="row mt-3 container-search">
-            <div class="col">
-                <button class="btn btn-primary" @onclick="Search">Search</button>
-            </div>
-        </div
 
-        <div class="container-summary">
+        <div class="container-summary mt-4">
             <p>Total items: <b>@totalItems</b></p>
             <p>Items displayed: <b>@dataCount</b></p>
-            <p>Number of request: <b>@numberOfRequest</b></p>
 
-            @if (payloadComplete == true || payloadComplete == null)
+            @if (dataCount != null && dataCount > 0 && showFilterDate)
             {
-                <button type="button" class="btn btn-outline-primary" disabled>Next request</button>
+                <button type="button" class="btn btn-outline-success" @onclick="DownloadCSV">download data</button>
             }
             else
             {
-                <button type="button" class="btn btn-outline-primary" @onclick="NextRequest">Next request</button>
+                <button type="button" class="btn btn-outline-success" disabled>download data</button>
             }
-
-            @if (dataCount != null && dataCount > 0)
-            {
-                <button type="button" class="btn btn-outline-success" @onclick="DownloadCSV">Download</button>
-            }
-            else
-            {
-                <button type="button" class="btn btn-outline-success" disabled>Download</button>
-            }
-            
         </div>
         
-
-        <Table_custom Data="@publisherCommissions?.Records"></Table_custom>
+        <Table_custom 
+            data="@dataToExport"
+            pageNumber="pageNumber"
+            pageSize="@pageSize"
+            pageCount="@pageCount"
+            hasPrevious="@hasPrevious"
+            hasNext="@hasNext"
+            OnGetData="SetDataRequest">
+        </Table_custom>
     </div>
 </div>
 
@@ -84,8 +141,21 @@
     private int? totalItems;
     private int numberOfRequest;
 
-    private DateTime start_date = DateTime.UtcNow.AddDays(-7);
-    private DateTime end_date = DateTime.UtcNow;
+    // Paginated
+    public int pageNumber;
+    public int pageSize;
+    public int pageCount = 0;
+    public bool hasPrevious = false;
+    public bool hasNext = false;
+
+    // Filters
+    private bool showFilterDate = true;
+    private bool showFilterOrderId = false;
+    private bool showFilterAN = false;
+    private string? ANSelected;
+
+    private DateTime? start_date;
+    private DateTime? end_date;
     private string? orderId;
 
     private Random random = new();
@@ -93,11 +163,20 @@
     private List<Commissions>? dataToExport = new List<Commissions>();
 
     [Inject] protected PreloadService PreloadService { get; set; } = default!;
+    List<string> affiliateNetworkOptions = new List<string>
+    {
+        "Impact Radius",
+        "Rakuten",
+        "Commission Junction",
+        "WildFire"
+    };
+
 
     protected override async Task OnInitializedAsync()
     {
 
         SetData();
+        SetDates();
         await GetCommissions();
     }
 
@@ -107,14 +186,25 @@
         {
             PreloadService.Show(SpinnerColor.Warning);
 
-            publisherCommissions = await _commissionsService.GetCommissionsPaginated(start_date, end_date, maxCommissionId, orderId);
+            publisherCommissions = await RequestCommisions();
 
-            dataToExport = publisherCommissions?.Records;
-            maxCommissionId = publisherCommissions?.MaxCommissionId;
-            payloadComplete = publisherCommissions?.PayloadComplete;
-            dataCount = publisherCommissions?.Records?.Count;
-            totalItems = publisherCommissions?.Count;
-            numberOfRequest += 1;
+            if (publisherCommissions != null)
+            {
+                dataToExport = publisherCommissions.Records;
+                maxCommissionId = publisherCommissions.MaxCommissionId;
+                payloadComplete = publisherCommissions.PayloadComplete;
+                dataCount = publisherCommissions.Records?.Count;
+                totalItems = publisherCommissions.Count;
+                numberOfRequest += 1;
+
+                // Paginated
+                pageNumber = publisherCommissions.PageNumber;
+                pageSize = publisherCommissions.PageSize;
+                pageCount = publisherCommissions.PageCount;
+                hasPrevious = publisherCommissions.HasPrevious;
+                hasNext = publisherCommissions.HasNext;
+            }
+
         }
         catch (Exception ex)
         {
@@ -126,10 +216,34 @@
         }
     }
 
+    private async Task<PublisherCommissions> RequestCommisions()
+    {
+        var response = await _commissionsService.GetCommissionsPaginated(start_date?.ToString("yyyy-MM-dd HH:mm:ss"), end_date?.ToString("yyyy-MM-dd HH:mm:ss"), maxCommissionId, orderId, ANSelected, pageNumber, pageSize);
+
+        return response;
+    }
+
     private async Task Search()
     {
-        SetData();
-        await GetCommissions();
+        if (showFilterOrderId)
+        {
+            Guid orderIdGuid;
+            if (Guid.TryParse(orderId, out orderIdGuid))
+            {
+                SetData();
+                await GetCommissions();
+            }
+            else
+            {
+                throw new ArgumentException("The entered order ID is not a valid GUID.");
+            }
+        }
+        else
+        {
+            SetData();
+            await GetCommissions();
+        }
+
     }
 
     private void SetData()
@@ -139,10 +253,68 @@
         dataCount = 0;
         totalItems = 0;
         payloadComplete = null;
+        pageNumber = 1;
+        pageSize = 25;
     }
 
-    private async Task NextRequest()
+    private void SetDates()
     {
+        start_date = DateTime.UtcNow.AddDays(-7);
+        end_date = DateTime.UtcNow;
+    }
+
+    public async Task SetDataRequest(PaginatedArgs args)
+    {
+        if (args.PageNumber > 0)
+        {
+            pageNumber = args.PageNumber;
+        }
+
+        if (args.PageSize > 0)
+        {
+            pageSize = args.PageSize;
+        }
+
+        await GetCommissions();
+    }
+
+    private async Task HandleShowFilterDateChange(ChangeEventArgs args)
+    {
+        showFilterDate = args.Value.ToString() == "on" ? true : false;
+        showFilterOrderId = false;
+        showFilterAN = false;
+
+        SetDates();
+        orderId = null;
+        ANSelected = null;
+        await GetCommissions();
+    }
+
+    private async Task HandleShowFilterOrderIdChange(ChangeEventArgs args)
+    {
+        start_date = null;
+        end_date = null;
+        ANSelected = null;
+        showFilterDate = false;
+        showFilterAN = false;
+        showFilterOrderId = args.Value.ToString() == "on" ? true : false;
+        await GetCommissions();
+    }
+
+    private async Task HandleShowFilterANChange(ChangeEventArgs args)
+    {
+        showFilterAN = args.Value.ToString() == "on" ? true : false;
+        showFilterDate = false;
+        showFilterOrderId = false;
+        start_date = null;
+        end_date = null;
+        orderId = null;
+        await GetCommissions();
+    }
+
+    private async Task SetAffiliateNetwork(string affiliateNetwork)
+    {
+        ANSelected = affiliateNetwork;
         await GetCommissions();
     }
 
@@ -166,13 +338,24 @@
                 }
             ");
 
-            string csvContent = ConvertToCsv(dataToExport);
+            var auxPageSize = pageSize;
+            var auxPageNumber = pageNumber;
+
+            pageSize = int.MaxValue;
+            pageNumber = 1;
+            var excelData = await RequestCommisions();
+
+            string csvContent = ConvertToCsv(excelData?.Records);
             string fileName = "publisherCommissions.csv";
 
             if (!string.IsNullOrEmpty(csvContent))
             {
                 await jsRuntime.InvokeAsync<object>("saveAsFile", fileName, csvContent);
             }
+
+            pageSize = auxPageSize;
+            pageNumber = auxPageNumber;
+            await GetCommissions();
         }
         catch (Exception ex)
         {
@@ -190,11 +373,11 @@
         {
             StringBuilder csvBuilder = new StringBuilder();
 
-            csvBuilder.AppendLine("CommissionId,AdvertiserName,ActionType,SaleAmountUsd,OrderDiscountUsd,PubCommissionAmountUsd,ActionTrackerName,WebsiteName,Aid,PostingDate,EventDate,OrderId,Coupon,IsCrossDevice");
+            csvBuilder.AppendLine("CommissionId,AdvertiserName,ActionType,SaleAmountUsd,OrderDiscountUsd,PubCommissionAmountUsd,ActionTrackerName,WebsiteName,Aid,PostingDate,EventDate,OrderId,Coupon,IsCrossDevice,AffiliateNetwork");
 
             foreach (var commission in commissions)
             {
-                csvBuilder.AppendLine($"{commission.CommissionId},{commission.AdvertiserName},{commission.ActionType},{commission.SaleAmountUsd},{commission.OrderDiscountUsd},{commission.PubCommissionAmountUsd},{commission.ActionTrackerName},{commission.WebsiteName},{commission.Aid},{commission.PostingDate},{commission.EventDate},{commission.OrderId},{commission.Coupon},{commission.IsCrossDevice}");
+                csvBuilder.AppendLine($"{commission.CommissionId},{commission.AdvertiserName},{commission.ActionType},{commission.SaleAmountUsd},{commission.OrderDiscountUsd},{commission.PubCommissionAmountUsd},{commission.ActionTrackerName},{commission.WebsiteName},{commission.Aid},{commission.PostingDate},{commission.EventDate},{commission.OrderId},{commission.Coupon},{commission.IsCrossDevice},{commission.AffiliateNetwork}");
             }
 
             return csvBuilder.ToString();
