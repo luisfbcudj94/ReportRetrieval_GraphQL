@@ -1,6 +1,7 @@
 ﻿@page "/"
 
 @using BlazorBootstrap
+@using BootstrapBlazor.Components
 @using FrontEnd_GraphQL.Application.Interfaces
 @using FrontEnd_GraphQL.Application.Models
 @using FrontEnd_GraphQL.Component.Tables
@@ -10,11 +11,12 @@
 @inject IJSRuntime jsRuntime
 @inject ICommissionsService _commissionsService;
 @inject ICSVService _CSVService;
+@inject IToastService toastService
 
 <Preload LoadingText="Loading..." />
 
-<div class="content content-dashboard">
 
+<div class="content content-dashboard">
     <div class="container-table">
 
         <div class="container container-filters">
@@ -51,11 +53,11 @@
                     {
                         <div class="col">
                             <label for="start_date" class="form-label">Start Date:</label>
-                            <input type="date" class="form-control" id="start_date" @bind="start_date" />
+                            <input type="date" class="form-control" id="start_date" @bind="start_date" min="@minStartDate" max="@maxStartDate" />
                         </div>
                         <div class="col">
                             <label for="end_date" class="form-label">End Date:</label>
-                            <input type="date" class="form-control" id="end_date" @bind="end_date" />
+                            <input type="date" class="form-control" id="end_date" @bind="end_date" min="@minEndDate" max="@maxEndDate" />
                         </div>
                     }
 
@@ -124,7 +126,6 @@
     </div>
 </div>
 
-
 @code {
     private LineChart lineChart = default!;
     private LineChartOptions lineChartOptions = default!;
@@ -156,13 +157,20 @@
 
     private DateTime? start_date;
     private DateTime? end_date;
+    private string minStartDate = DateTime.Now.AddYears(-20).ToString("yyyy-MM-dd");
+    private string maxStartDate = DateTime.Now.ToString("yyyy-MM-dd");
+    private string minEndDate = DateTime.Now.Date.AddYears(-20).ToString("yyyy-MM-dd");
+    private string maxEndDate = DateTime.Now.Date.AddYears(20).ToString("yyyy-MM-dd");
     private string? orderId;
+
 
     private Random random = new();
 
     private List<Commissions>? dataToExport = new List<Commissions>();
 
+    // [Inject] protected ToastService ToastService { get; set; } = default!;
     [Inject] protected PreloadService PreloadService { get; set; } = default!;
+
     List<string> affiliateNetworkOptions = new List<string>
     {
         "Impact Radius",
@@ -170,7 +178,6 @@
         "Commission Junction",
         "WildFire"
     };
-
 
     protected override async Task OnInitializedAsync()
     {
@@ -184,36 +191,80 @@
     {
         try
         {
-            PreloadService.Show(SpinnerColor.Warning);
-
-            publisherCommissions = await RequestCommisions();
-
-            if (publisherCommissions != null)
+            if (ValidateFields())
             {
-                dataToExport = publisherCommissions.Records;
-                maxCommissionId = publisherCommissions.MaxCommissionId;
-                payloadComplete = publisherCommissions.PayloadComplete;
-                dataCount = publisherCommissions.Records?.Count;
-                totalItems = publisherCommissions.Count;
-                numberOfRequest += 1;
+                PreloadService.Show(SpinnerColor.Warning);
 
-                // Paginated
-                pageNumber = publisherCommissions.PageNumber;
-                pageSize = publisherCommissions.PageSize;
-                pageCount = publisherCommissions.PageCount;
-                hasPrevious = publisherCommissions.HasPrevious;
-                hasNext = publisherCommissions.HasNext;
+                publisherCommissions = await RequestCommisions();
+
+                if (publisherCommissions != null)
+                {
+                    dataToExport = publisherCommissions.Records;
+                    maxCommissionId = publisherCommissions.MaxCommissionId;
+                    payloadComplete = publisherCommissions.PayloadComplete;
+                    dataCount = publisherCommissions.Records?.Count;
+                    totalItems = publisherCommissions.Count;
+                    numberOfRequest += 1;
+
+                    // Paginated
+                    pageNumber = publisherCommissions.PageNumber;
+                    pageSize = publisherCommissions.PageSize;
+                    pageCount = publisherCommissions.PageCount;
+                    hasPrevious = publisherCommissions.HasPrevious;
+                    hasNext = publisherCommissions.HasNext;
+                }
+            }
+            else
+            {
+                dataToExport = null;
+                SetData();
             }
 
         }
         catch (Exception ex)
         {
+            toastService.ShowError("An error has occurred in the application. Please try again later.");
             throw ex;
         }
         finally
         {
             PreloadService.Hide();
         }
+    }
+
+    private bool ValidateFields()
+    {
+        if (start_date < DateTime.Parse(minStartDate))
+        {
+            toastService.ShowError("The start date cannot be less than 20 years.");
+            return false;
+        }
+
+        if (start_date > DateTime.Parse(maxStartDate))
+        {
+            toastService.ShowError("The start date cannot be greater than the current date.");
+            return false;
+        }
+
+        if (start_date > end_date)
+        {
+            toastService.ShowError("The start date cannot be greater than the end date.");
+            return false;
+        }
+
+        if (end_date > DateTime.Parse(maxEndDate))
+        {
+            toastService.ShowError("The end date cannot be greater than 20 years.");
+            return false;
+        }
+
+        if (end_date < DateTime.Parse(minEndDate))
+        {
+            toastService.ShowError("The start date cannot be less than 20 years.");
+            return false;
+        }
+
+        return true;
     }
 
     private async Task<PublisherCommissions> RequestCommisions()
@@ -235,7 +286,7 @@
             }
             else
             {
-                throw new ArgumentException("The entered order ID is not a valid GUID.");
+                toastService.ShowError("The entered order ID is not a valid GUID. Please enter a GUID and try again.");
             }
         }
         else
@@ -255,6 +306,7 @@
         payloadComplete = null;
         pageNumber = 1;
         pageSize = 25;
+        pageCount = 0;
     }
 
     private void SetDates()
@@ -351,6 +403,7 @@
             if (!string.IsNullOrEmpty(csvContent))
             {
                 await jsRuntime.InvokeAsync<object>("saveAsFile", fileName, csvContent);
+                toastService.ShowSuccess("CSV file downloaded successfully.");
             }
 
             pageSize = auxPageSize;
@@ -359,7 +412,8 @@
         }
         catch (Exception ex)
         {
-            Console.WriteLine("Error downloading CSV: " + ex.Message);
+            toastService.ShowError("An error has occurred in the application. Please try again later.");
+            System.Console.WriteLine("Error downloading CSV: " + ex.Message);
         }
         finally
         {
