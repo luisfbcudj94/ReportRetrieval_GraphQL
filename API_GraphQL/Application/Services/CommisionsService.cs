@@ -53,11 +53,12 @@ namespace API_GraphQL.Application.Services
         /// <param name="startDate">Start date of the date range to filter.</param>
         /// <param name="endDate">End date of the date range to filter.</param>
         /// <returns>A paginated list of commissions.</returns>
-        public PaginatedList GetCommissionsPaginated
-                (string? sincePostingDate = null,
+        public PaginatedList GetCommissionsPaginated(
+                string? sincePostingDate = null,
                 string? beforePostingDate = null,
                 string? sinceCommissionId = null,
                 string? orderId = null,
+                string? affiliateNetwork = null,
                 int pageNumber = 1,
                 int pageSize = 25)
         {
@@ -86,6 +87,11 @@ namespace API_GraphQL.Application.Services
             if (Guid.TryParse(orderId, out orderIdGuid))
             {
                 data = data.Where(p => p.OrderId == orderIdGuid).ToList();
+            }
+
+            if (!string.IsNullOrEmpty(affiliateNetwork))
+            {
+                data = data.Where(p => p.AffiliateNetwork == affiliateNetwork).ToList();
             }
 
             var result = data.

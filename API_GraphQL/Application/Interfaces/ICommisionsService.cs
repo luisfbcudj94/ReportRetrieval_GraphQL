@@ -22,7 +22,8 @@ namespace API_GraphQL.Application.Interfaces
                 string? sincePostingDate = null,
                 string? beforePostingDate = null,
                 string? sinceCommissionId = null,
-                string? orderId = null, 
+                string? orderId = null,
+                string? affiliateNetwork = null,
                 int pageNumber = 1, 
                 int pageSize = 25
             );

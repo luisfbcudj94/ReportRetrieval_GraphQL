@@ -25,20 +25,20 @@
                     <div class="mt-3">Select the field by which you want to filter the data</div>
 
                     <div class="form-check mt-4">
-                        <input class="form-check-input" type="radio" name="flexRadioDefault" id="flexRadioDefault1" @onchange="HandleShowFilterDateChange" checked>
-                        <label class="form-check-label" for="flexRadioDefault1">
-                            By Post date
+                        <input class="form-check-input pointer" type="radio" name="flexRadioDefault" id="flexRadioDefault1" @onchange="HandleShowFilterDateChange" checked>
+                        <label class="form-check-label pointer" for="flexRadioDefault1">
+                            By Posting date
                         </label>
                     </div>
                     <div class="form-check">
-                        <input class="form-check-input" type="radio" name="flexRadioDefault" id="flexRadioDefault2" @onchange="HandleShowFilterOrderIdChange">
-                        <label class="form-check-label" for="flexRadioDefault2">
+                        <input class="form-check-input pointer" type="radio" name="flexRadioDefault" id="flexRadioDefault2" @onchange="HandleShowFilterOrderIdChange">
+                        <label class="form-check-label pointer" for="flexRadioDefault2">
                             By Order Id
                         </label>
                     </div>
                     <div class="form-check">
-                        <input class="form-check-input" type="radio" name="flexRadioDefault" id="flexRadioDefault3" @onchange="HandleShowFilterANChange">
-                        <label class="form-check-label" for="flexRadioDefault3">
+                        <input class="form-check-input pointer" type="radio" name="flexRadioDefault" id="flexRadioDefault3" @onchange="HandleShowFilterANChange">
+                        <label class="form-check-label pointer" for="flexRadioDefault3">
                             By Affiliate Network
                         </label>
                     </div>
@@ -78,7 +78,7 @@
                                 @foreach (var item in affiliateNetworkOptions)
                                 {
                                     <li>
-                                        <a class="dropdown-item" @onclick="() => SetAffiliateNetwork(item)">@item</a>
+                                        <a class="dropdown-item pointer" @onclick="() => SetAffiliateNetwork(item)">@item</a>
                                     </li>
                                 }
                             </ul>
@@ -218,7 +218,7 @@
 
     private async Task<PublisherCommissions> RequestCommisions()
     {
-        var response = await _commissionsService.GetCommissionsPaginated(start_date?.ToString("yyyy-MM-dd HH:mm:ss"), end_date?.ToString("yyyy-MM-dd HH:mm:ss"), maxCommissionId, orderId, pageNumber, pageSize);
+        var response = await _commissionsService.GetCommissionsPaginated(start_date?.ToString("yyyy-MM-dd HH:mm:ss"), end_date?.ToString("yyyy-MM-dd HH:mm:ss"), maxCommissionId, orderId, ANSelected, pageNumber, pageSize);
 
         return response;
     }
@@ -278,40 +278,44 @@
         await GetCommissions();
     }
 
-    void HandleShowFilterDateChange(ChangeEventArgs args)
+    private async Task HandleShowFilterDateChange(ChangeEventArgs args)
     {
         showFilterDate = args.Value.ToString() == "on" ? true : false;
         showFilterOrderId = false;
         showFilterAN = false;
 
-        if (showFilterDate)
-        {
-            SetDates();
-            orderId = null;
-        }
+        SetDates();
+        orderId = null;
+        ANSelected = null;
+        await GetCommissions();
     }
 
-    void HandleShowFilterOrderIdChange(ChangeEventArgs args)
+    private async Task HandleShowFilterOrderIdChange(ChangeEventArgs args)
     {
         start_date = null;
         end_date = null;
+        ANSelected = null;
         showFilterDate = false;
         showFilterAN = false;
         showFilterOrderId = args.Value.ToString() == "on" ? true : false;
+        await GetCommissions();
     }
 
-    void HandleShowFilterANChange(ChangeEventArgs args)
+    private async Task HandleShowFilterANChange(ChangeEventArgs args)
     {
         showFilterAN = args.Value.ToString() == "on" ? true : false;
         showFilterDate = false;
         showFilterOrderId = false;
         start_date = null;
         end_date = null;
+        orderId = null;
+        await GetCommissions();
     }
 
-    void SetAffiliateNetwork(string affiliateNetwork)
+    private async Task SetAffiliateNetwork(string affiliateNetwork)
     {
         ANSelected = affiliateNetwork;
+        await GetCommissions();
     }
 
     private async Task DownloadCSV()

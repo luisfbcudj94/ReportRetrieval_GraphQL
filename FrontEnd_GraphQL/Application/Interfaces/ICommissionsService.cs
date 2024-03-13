@@ -5,6 +5,13 @@ namespace FrontEnd_GraphQL.Application.Interfaces
 {
     public interface ICommissionsService
     {
-        Task<PublisherCommissions> GetCommissionsPaginated(string? sincePostingDate = null, string? beforePostingDate = null, string? sinceCommissionId = null, string? orderId = null, int pageNumber = 1, int pageSize = 25);
+        Task<PublisherCommissions> GetCommissionsPaginated(
+            string? sincePostingDate = null, 
+            string? beforePostingDate = null, 
+            string? sinceCommissionId = null, 
+            string? orderId = null,
+            string? affiliateNetwork = null,
+            int pageNumber = 1, 
+            int pageSize = 25);
     }
 }

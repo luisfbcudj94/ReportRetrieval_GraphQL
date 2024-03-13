@@ -20,7 +20,14 @@ namespace FrontEnd_GraphQL.Application.Services
             _graphQLClientService = graphQLClientService;
         }
 
-        public async Task<PublisherCommissions> GetCommissionsPaginated(string? _sincePostingDate = null, string? _beforePostingDate = null, string? _sinceCommissionId = null, string? _orderId = null, int _pageNumber = 1, int _pageSize = 25)
+        public async Task<PublisherCommissions> GetCommissionsPaginated(
+                string? _sincePostingDate = null, 
+                string? _beforePostingDate = null, 
+                string? _sinceCommissionId = null, 
+                string? _orderId = null,
+                string? _affiliateNetwork = null,
+                int _pageNumber = 1, 
+                int _pageSize = 25)
         {
 
             if (_sinceCommissionId == null)
@@ -35,12 +42,14 @@ namespace FrontEnd_GraphQL.Application.Services
                             $sincePostingDate: String,
                             $beforePostingDate: String,
                             $orderId: String,
+                            $affiliateNetwork: String,
                             $pageNumber: Int,
                             $pageSize: Int) {
                         publisherCommissions(
                             sincePostingDate: $sincePostingDate,
                             beforePostingDate: $beforePostingDate,
                             orderId: $orderId,
+                            affiliateNetwork: $affiliateNetwork
                             pageNumber: $pageNumber,
                             pageSize: $pageSize) {
                             count
@@ -76,6 +85,7 @@ namespace FrontEnd_GraphQL.Application.Services
                     sincePostingDate = _sincePostingDate,
                     beforePostingDate = _beforePostingDate,
                     orderId = _orderId,
+                    affiliateNetwork = _affiliateNetwork,
                     pageNumber = _pageNumber,
                     pageSize = _pageSize,
                 }

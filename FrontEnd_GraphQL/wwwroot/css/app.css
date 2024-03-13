@@ -188,3 +188,7 @@ code {
 .container-table .container-summary p{
     margin-bottom: 0px !important;
 }
+
+.pointer{
+    cursor: pointer;
+}
