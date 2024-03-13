@@ -1,9 +1,21 @@
 ﻿@inherits LayoutComponentBase
 @using FrontEnd_GraphQL.Shared
+@using Blazored.Toast.Configuration
+
 
 <Navbar></Navbar>
 
-
 @Body
+<BlazoredToasts Position="ToastPosition.TopRight"
+                Timeout="5"
+                IconType="IconType.FontAwesome"
+                SuccessClass="success-toast-override"
+                SuccessIcon="fa fa-thumbs-up"
+                ErrorIcon="fa fa-bug" />
 
 <FrontEnd_GraphQL.Shared.Sidebar></FrontEnd_GraphQL.Shared.Sidebar>
+
+
+
+@* <BlazoredToasts/> *@
+
