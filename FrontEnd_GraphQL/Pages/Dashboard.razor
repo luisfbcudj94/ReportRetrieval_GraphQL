@@ -38,26 +38,40 @@
                             By Order Id
                         </label>
                     </div>
-                    <div class="form-check">
-                        <input class="form-check-input pointer" type="radio" name="flexRadioDefault" id="flexRadioDefault3" @onchange="HandleShowFilterANChange">
-                        <label class="form-check-label pointer" for="flexRadioDefault3">
-                            By Affiliate Network
-                        </label>
-                    </div>
-
 
                 </div>
 
                 <div class="col p-2 w-90">
                     @if (showFilterDate && !showFilterOrderId && !showFilterAN)
                     {
-                        <div class="col">
-                            <label for="start_date" class="form-label">Start Date:</label>
-                            <input type="date" class="form-control" id="start_date" @bind="start_date" min="@minStartDate" max="@maxStartDate" />
+                        <div class="row">
+                            <div class="col">
+                                <label for="start_date" class="form-label">Start Date:</label>
+                                <input type="date" class="form-control" id="start_date" @bind="start_date" min="@minStartDate" max="@maxStartDate" />
+                            </div>
+                            <div class="col">
+                                <label for="end_date" class="form-label">End Date:</label>
+                                <input type="date" class="form-control" id="end_date" @bind="end_date" min="@minEndDate" max="@maxEndDate" />
+                            </div>
                         </div>
-                        <div class="col">
-                            <label for="end_date" class="form-label">End Date:</label>
-                            <input type="date" class="form-control" id="end_date" @bind="end_date" min="@minEndDate" max="@maxEndDate" />
+                        <div class="container-an">
+                            <label class="form-label">Choose an affiliate network</label>
+                            <div class="dropup-center dropup mb-3 input-an">
+                                <button class="btn btn-info dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    Affiliate Network
+                                </button>
+                                <ul class="dropdown-menu">
+                                    @foreach (var item in affiliateNetworkOptions)
+                                    {
+                                        <li>
+                                            <a class="dropdown-item pointer" @onclick="() => SetAffiliateNetwork(item)">@item</a>
+                                        </li>
+                                    }
+                                </ul>
+                            </div>
+                            <div class="choose-an">
+                                <span>Affiliate network selected:</span> <b>@ANSelected</b>
+                            </div>
                         </div>
                     }
 
@@ -67,25 +81,27 @@
                             <label for="orderId" class="form-label">Order Id:</label>
                             <input type="text" class="form-control" id="orderId" @bind="orderId" />
                         </div>
-                    }
 
-                    @if (showFilterAN && !showFilterDate && !showFilterOrderId)
-                    {
-                        <h4 class="color-title mb-3">Choose an affiliate network</h4>
-                        <div class="dropup-center dropup mb-3">
-                            <button class="btn btn-info dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                Affiliate Network
-                            </button>
-                            <ul class="dropdown-menu">
-                                @foreach (var item in affiliateNetworkOptions)
-                                {
-                                    <li>
-                                        <a class="dropdown-item pointer" @onclick="() => SetAffiliateNetwork(item)">@item</a>
-                                    </li>
-                                }
-                            </ul>
+                        <div class="container-an">
+                            <label class="form-label">Choose an affiliate network</label>
+                            <div class="dropup-center dropup mb-3 input-an">
+                                <button class="btn btn-info dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    Affiliate Network
+                                </button>
+                                <ul class="dropdown-menu">
+                                    @foreach (var item in affiliateNetworkOptions)
+                                    {
+                                        <li>
+                                            <a class="dropdown-item pointer" @onclick="() => SetAffiliateNetwork(item)">@item</a>
+                                        </li>
+                                    }
+                                </ul>
+                            </div>
+                            <div class="choose-an">
+                                <span>Affiliate network selected:</span> <b>@ANSelected</b>
+                            </div>
+                            
                         </div>
-                        <span>Affiliate network selected: <b>@ANSelected</b></span>
                     }
                     
                     @if (!showFilterAN)
@@ -149,6 +165,14 @@
     public bool hasPrevious = false;
     public bool hasNext = false;
 
+    List<string> affiliateNetworkOptions = new List<string>
+    {
+        "Impact Radius",
+        "Rakuten",
+        "Commission Junction",
+        "WildFire"
+    };
+
     // Filters
     private bool showFilterDate = true;
     private bool showFilterOrderId = false;
@@ -157,10 +181,10 @@
 
     private DateTime? start_date;
     private DateTime? end_date;
-    private string minStartDate = DateTime.Now.AddYears(-20).ToString("yyyy-MM-dd");
-    private string maxStartDate = DateTime.Now.ToString("yyyy-MM-dd");
+    private string minStartDate = DateTime.Now.Date.AddYears(-20).ToString("yyyy-MM-dd");
+    private string maxStartDate = DateTime.Now.Date.ToString("yyyy-MM-dd");
     private string minEndDate = DateTime.Now.Date.AddYears(-20).ToString("yyyy-MM-dd");
-    private string maxEndDate = DateTime.Now.Date.AddYears(20).ToString("yyyy-MM-dd");
+    private string maxEndDate = DateTime.Now.Date.ToString("yyyy-MM-dd");
     private string? orderId;
 
 
@@ -171,19 +195,12 @@
     // [Inject] protected ToastService ToastService { get; set; } = default!;
     [Inject] protected PreloadService PreloadService { get; set; } = default!;
 
-    List<string> affiliateNetworkOptions = new List<string>
-    {
-        "Impact Radius",
-        "Rakuten",
-        "Commission Junction",
-        "WildFire"
-    };
-
     protected override async Task OnInitializedAsync()
     {
 
         SetData();
         SetDates();
+        ANSelected = affiliateNetworkOptions[0];
         await GetCommissions();
     }
 
@@ -234,33 +251,39 @@
 
     private bool ValidateFields()
     {
-        if (start_date < DateTime.Parse(minStartDate))
+        if (start_date?.Date < DateTime.Parse(minStartDate).Date)
         {
             toastService.ShowError("The start date cannot be less than 20 years.");
             return false;
         }
 
-        if (start_date > DateTime.Parse(maxStartDate))
+        if (start_date?.Date > DateTime.Parse(maxStartDate).Date)
         {
             toastService.ShowError("The start date cannot be greater than the current date.");
             return false;
         }
 
-        if (start_date > end_date)
+        if (start_date?.Date > end_date?.Date)
         {
             toastService.ShowError("The start date cannot be greater than the end date.");
             return false;
         }
 
-        if (end_date > DateTime.Parse(maxEndDate))
+        if (end_date?.Date > DateTime.Parse(maxEndDate).Date)
         {
             toastService.ShowError("The end date cannot be greater than 20 years.");
             return false;
         }
 
-        if (end_date < DateTime.Parse(minEndDate))
+        if (end_date?.Date < DateTime.Parse(minEndDate).Date)
         {
             toastService.ShowError("The start date cannot be less than 20 years.");
+            return false;
+        }
+
+        if (string.IsNullOrEmpty(ANSelected))
+        {
+            toastService.ShowError("You must select an Affiliate network.");
             return false;
         }
 
@@ -339,7 +362,7 @@
         SetDates();
         orderId = null;
         ANSelected = null;
-        await GetCommissions();
+        // await GetCommissions();
     }
 
     private async Task HandleShowFilterOrderIdChange(ChangeEventArgs args)
@@ -350,24 +373,13 @@
         showFilterDate = false;
         showFilterAN = false;
         showFilterOrderId = args.Value.ToString() == "on" ? true : false;
-        await GetCommissions();
-    }
-
-    private async Task HandleShowFilterANChange(ChangeEventArgs args)
-    {
-        showFilterAN = args.Value.ToString() == "on" ? true : false;
-        showFilterDate = false;
-        showFilterOrderId = false;
-        start_date = null;
-        end_date = null;
-        orderId = null;
-        await GetCommissions();
+        // await GetCommissions();
     }
 
     private async Task SetAffiliateNetwork(string affiliateNetwork)
     {
         ANSelected = affiliateNetwork;
-        await GetCommissions();
+        // await GetCommissions();
     }
 
     private async Task DownloadCSV()
