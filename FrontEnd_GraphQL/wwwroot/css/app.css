@@ -211,3 +211,16 @@ code {
     justify-content: space-between;
     align-items: center;
 }
+
+.container-choose-api .btn-group{
+    width: 15% !important;
+}
+
+.btn-add-item {
+    border-radius: 100%;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
