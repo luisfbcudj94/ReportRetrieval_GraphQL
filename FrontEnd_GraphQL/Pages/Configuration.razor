@@ -1,0 +1,298 @@
+﻿@page "/configuration"
+
+<div class="col">
+    <div class="row">
+        <div class="col-7">
+
+            <div class="content">
+
+                <h2>Choose the API to configure</h2>
+
+                <div class="container-choose-api d-flex align-items-center mt-4">
+
+                    <div class="col">
+                        <div class="row">
+
+                            <div class="col-5">
+                                <label class="me-3">Choose an API o add a new one</label>
+                            </div>
+
+                            <div class="col-6">
+                                <button type="button" class="btn btn-primary dropdown-toggle w-100" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                    APIs
+                                </button>
+                                <div class="dropdown-menu w-100">
+                                    <a class="dropdown-item" href="#">Action</a>
+                                    <a class="dropdown-item" href="#">Another action</a>
+                                    <a class="dropdown-item" href="#">Something else here</a>
+                                    <div class="dropdown-divider"></div>
+                                    <a class="dropdown-item" href="#">Separated link</a>
+                                </div>
+                            </div>
+
+                            <div class="col-1 d-flex align-items-center">
+                                <button class="btn btn-outline-primary ms-3 btn-add-item">
+                                    <i class="fa-regular fa-plus"></i>
+                                </button>
+                            </div>
+
+                        </div>
+                    </div>
+
+
+                </div>
+
+                <div class="container-info-api mt-3">
+
+                    <div class="col">
+                        <div class="row">
+
+                            <div class="col-5">
+                                <label class="me-3">Select the type of the API:</label>
+                            </div>
+
+                            <div class="col-6 d-flex justify-content-between">
+                                <div class="form-check-inline">
+                                    <input class="form-check-input pointer" type="radio" name="flexRadioDefault" id="restRadio" checked>
+                                    <label class="form-check-label pointer" for="restRadio">
+                                        Rest
+                                    </label>
+                                </div>
+
+                                <div class="form-check-inline">
+                                    <input class="form-check-input pointer" type="radio" name="flexRadioDefault" id="graphqlRadio" checked>
+                                    <label class="form-check-label pointer" for="graphqlRadio">
+                                        Graph QL
+                                    </label>
+                                </div>
+
+                                <div class="form-check-inline">
+                                    <input class="form-check-input pointer" type="radio" name="flexRadioDefault" id="soapRadio" checked>
+                                    <label class="form-check-label pointer" for="soapRadio">
+                                        SOAP
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="col-1 d-flex align-items-center">
+                                <button class="btn btn-outline-primary ms-3 btn-add-item">
+                                    <i class="fa-regular fa-plus"></i>
+                                </button>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <div class="container-http-method mt-3">
+
+                        <div class="col">
+                            <div class="row">
+
+                                <div class="col-5">
+                                    <label class="me-3">Select the HTTP Method:</label>
+                                </div>
+
+                                <div class="col-6 d-flex justify-content-between">
+                                    <div class="form-check-inline">
+                                        <input class="form-check-input pointer" type="radio" name="flexRadioDefault" id="getRadio" checked>
+                                        <label class="form-check-label pointer" for="getRadio">
+                                            GET
+                                        </label>
+                                    </div>
+
+                                    <div class="form-check-inline">
+                                        <input class="form-check-input pointer" type="radio" name="flexRadioDefault" id="postRadio" checked>
+                                        <label class="form-check-label pointer" for="postRadio">
+                                            POST
+                                        </label>
+                                    </div>
+
+                                    <div class="form-check-inline">
+                                        <input class="form-check-input pointer" type="radio" name="flexRadioDefault" id="deleteRadio" checked>
+                                        <label class="form-check-label pointer" for="deleteRadio">
+                                            DELETE
+                                        </label>
+                                    </div>
+
+                                    <div class="form-check-inline">
+                                        <input class="form-check-input pointer" type="radio" name="flexRadioDefault" id="patchRadio" checked>
+                                        <label class="form-check-label pointer" for="patchRadio">
+                                            PATCH
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <div class="col-1 d-flex align-items-center">
+                                    <button class="btn btn-outline-primary ms-3 btn-add-item">
+                                        <i class="fa-regular fa-plus"></i>
+                                    </button>
+                                </div>
+
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <div class="container-url mt-4">
+
+                        <div class="col">
+                            <div class="row">
+
+                                <div class="col-3 d-flex align-items-center">
+                                    <label for="url" class="form-label">URL</label>
+                                </div>
+                                <div class="col-8">
+                                    <input type="text" class="form-control" id="url" />
+                                </div>
+                                <div class="col-1 d-flex align-items-center">
+                                    <button class="btn btn-outline-primary ms-3 btn-add-item">
+                                        <i class="fa-regular fa-plus"></i>
+                                    </button>
+                                </div>
+
+                            </div>
+
+                            <div class="row mt-4">
+
+                                <div class="col-3">
+                                    <label for="urlParams" class="form-label">Url params</label>
+                                </div>
+                                <div class="col-8">
+                                    <input type="text" class="form-control" id="urlParams" />
+                                </div>
+                                <div class="col-1 d-flex align-items-center">
+                                    <button class="btn btn-outline-primary ms-3 btn-add-item">
+                                        <i class="fa-regular fa-plus"></i>
+                                    </button>
+                                </div>
+
+                            </div>
+                        </div>
+
+
+                    </div>
+
+                    <div class="container-headers mt-4">
+
+                        <div class="col">
+
+                            <div class="row mt-2">
+                                <div class="col-3">
+                                    <label for="headers" class="form-label">Headers</label>
+                                </div>
+                                <div class="col-8">
+                                    <input type="text" class="form-control" id="headers" />
+                                </div>
+                                <div class="col-1 d-flex align-items-center">
+                                    <button class="btn btn-outline-primary ms-3 btn-add-item">
+                                        <i class="fa-regular fa-plus"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="row mt-4">
+
+                                <div class="col-3">
+                                    <label for="headerParams" class="form-label">Header params</label>
+                                </div>
+                                <div class="col-8">
+                                    <input type="text" class="form-control" id="headerParams" />
+                                </div>
+                                <div class="col-1 d-flex align-items-center">
+                                    <button class="btn btn-outline-primary ms-3 btn-add-item">
+                                        <i class="fa-regular fa-plus"></i>
+                                    </button>
+                                </div>
+
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <div class="container-body mt-4">
+
+                        <div class="col">
+
+                            <div class="row mt-2">
+                                <div class="col-3">
+                                    <label for="body" class="form-label">Body</label>
+                                </div>
+                                <div class="col-8">
+                                    <div class="form-floating">
+                                        <textarea class="form-control" placeholder="Leave a comment here" id="floatingTextarea2" style="height: 100px"></textarea>
+                                        <label for="floatingTextarea2"></label>
+                                    </div>
+                                </div>
+                                <div class="col-1 d-flex align-items-center">
+                                    <button class="btn btn-outline-primary ms-3 btn-add-item">
+                                        <i class="fa-regular fa-plus"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="row mt-4">
+
+                                <div class="col-3">
+                                    <label for="bodyParams" class="form-label">Body params</label>
+                                </div>
+                                <div class="col-8">
+                                    <input type="text" class="form-control" id="bodyParams" />
+                                </div>
+                                <div class="col-1 d-flex align-items-center">
+                                    <button class="btn btn-outline-primary ms-3 btn-add-item">
+                                        <i class="fa-regular fa-plus"></i>
+                                    </button>
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <div class="container-test">
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+
+        <div class=" col-5">
+            <h1>Preview</h1>
+
+            <div class="row d-flex justify-content-center">
+                <div class="col-10">
+                    <div class="form-floating">
+                        <textarea class="form-control" placeholder="Leave a comment here" id="floatingTextarea2" style="height: 500px"></textarea>
+                        <label for="floatingTextarea2"></label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row d-flex justify-content-center mt-4">
+                <div class="col-10 d-flex justify-content-center">
+                    <button class="btn btn-outline-primary ms-3">
+                        Test API
+                    </button>
+                    <button class="btn btn-outline-success ms-3">
+                        Save API configuration
+                    </button>
+                </div>
+            </div>
+
+
+        </div>
+    </div>
+</div>
+
+
+
+
+
+
+ 
+
+@code {
+
+}
