@@ -1,12 +1,25 @@
 ﻿@page "/configuration"
 
+
+@using FrontEnd_GraphQL.Application.Interfaces
+@using FrontEnd_GraphQL.Application.Models.SetApis
+@using Newtonsoft.Json
+@using Blazorise
+@using System.Text.RegularExpressions
+@using System.Text
+
+
+@inject ISetApisService _userService;
+
+
+
 <div class="col">
     <div class="row">
         <div class="col-7">
 
-            <div class="content">
+            <div class="content p-3">
 
-                <h2>Choose the API to configure</h2>
+                <h3>Configure request parameters</h3>
 
                 <div class="container-choose-api d-flex align-items-center mt-4">
 
@@ -44,7 +57,7 @@
 
                 <div class="container-info-api mt-3">
 
-                    <div class="col">
+                    <div class="col"> 
                         <div class="row">
 
                             <div class="col-5">
@@ -52,30 +65,27 @@
                             </div>
 
                             <div class="col-6 d-flex justify-content-between">
-                                <div class="form-check-inline">
-                                    <input class="form-check-input pointer" type="radio" name="flexRadioDefault" id="restRadio" checked>
-                                    <label class="form-check-label pointer" for="restRadio">
-                                        Rest
-                                    </label>
-                                </div>
 
-                                <div class="form-check-inline">
-                                    <input class="form-check-input pointer" type="radio" name="flexRadioDefault" id="graphqlRadio" checked>
-                                    <label class="form-check-label pointer" for="graphqlRadio">
-                                        Graph QL
-                                    </label>
-                                </div>
-
-                                <div class="form-check-inline">
-                                    <input class="form-check-input pointer" type="radio" name="flexRadioDefault" id="soapRadio" checked>
-                                    <label class="form-check-label pointer" for="soapRadio">
-                                        SOAP
-                                    </label>
-                                </div>
+                                @if (apiTypes !=null)
+                                {
+                                    @foreach (var item in apiTypes)
+                                    {
+                                        <div class="form-check-inline">
+                                            <input class="form-check-input pointer" type="radio" name="apiTypesRadioButton" id="@item.Name" @onchange="SetApiType" value="@item.Name">
+                                            <label class="form-check-label pointer" for="@item.Name">
+                                                @item.Name
+                                            </label>
+                                        </div>
+                                    }
+                                }
+                                else
+                                {
+                                    <label>Error displaying API types</label>
+                                }
                             </div>
 
                             <div class="col-1 d-flex align-items-center">
-                                <button class="btn btn-outline-primary ms-3 btn-add-item">
+                                <button class="btn btn-outline-primary ms-3 btn-add-item" @onclick="() => displayPreview()">
                                     <i class="fa-regular fa-plus"></i>
                                 </button>
                             </div>
@@ -93,37 +103,27 @@
                                 </div>
 
                                 <div class="col-6 d-flex justify-content-between">
-                                    <div class="form-check-inline">
-                                        <input class="form-check-input pointer" type="radio" name="flexRadioDefault" id="getRadio" checked>
-                                        <label class="form-check-label pointer" for="getRadio">
-                                            GET
-                                        </label>
-                                    </div>
 
-                                    <div class="form-check-inline">
-                                        <input class="form-check-input pointer" type="radio" name="flexRadioDefault" id="postRadio" checked>
-                                        <label class="form-check-label pointer" for="postRadio">
-                                            POST
-                                        </label>
-                                    </div>
-
-                                    <div class="form-check-inline">
-                                        <input class="form-check-input pointer" type="radio" name="flexRadioDefault" id="deleteRadio" checked>
-                                        <label class="form-check-label pointer" for="deleteRadio">
-                                            DELETE
-                                        </label>
-                                    </div>
-
-                                    <div class="form-check-inline">
-                                        <input class="form-check-input pointer" type="radio" name="flexRadioDefault" id="patchRadio" checked>
-                                        <label class="form-check-label pointer" for="patchRadio">
-                                            PATCH
-                                        </label>
-                                    </div>
+                                    @if (httpMethods != null)
+                                    {
+                                        @foreach (var item in httpMethods)
+                                        {
+                                            <div class="form-check-inline">
+                                                <input class="form-check-input pointer" type="radio" name="httpMethodRadioButton" id="@item.Name" @onchange="HandleHTTPMethodChange" value="@item.Name">
+                                                <label class="form-check-label pointer" for="@item.Name">
+                                                    @item.Name
+                                                </label>
+                                            </div>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <label>Error displaying http methods</label>
+                                    }
                                 </div>
 
                                 <div class="col-1 d-flex align-items-center">
-                                    <button class="btn btn-outline-primary ms-3 btn-add-item">
+                                    <button class="btn btn-outline-primary ms-3 btn-add-item" @onclick="() => displayPreview()">
                                         <i class="fa-regular fa-plus"></i>
                                     </button>
                                 </div>
@@ -142,10 +142,10 @@
                                     <label for="url" class="form-label">URL</label>
                                 </div>
                                 <div class="col-8">
-                                    <input type="text" class="form-control" id="url" />
+                                    <input type="text" class="form-control" id="url" @bind="url"/>
                                 </div>
                                 <div class="col-1 d-flex align-items-center">
-                                    <button class="btn btn-outline-primary ms-3 btn-add-item">
+                                    <button class="btn btn-outline-primary ms-3 btn-add-item" @onclick="() => displayPreview()">
                                         <i class="fa-regular fa-plus"></i>
                                     </button>
                                 </div>
@@ -157,15 +157,37 @@
                                 <div class="col-3">
                                     <label for="urlParams" class="form-label">Url params</label>
                                 </div>
-                                <div class="col-8">
-                                    <input type="text" class="form-control" id="urlParams" />
+                                <div class="col-8 d-flex justify-content-between">
+                                    <input type="text" class="form-control" id="urlParams" @bind="urlParamName" style="width:48%" placeholder="Name"/>
+                                    <input type="text" class="form-control" id="urlParams" @bind="urlParamValue" style="width:48%" placeholder="Value" />
                                 </div>
                                 <div class="col-1 d-flex align-items-center">
-                                    <button class="btn btn-outline-primary ms-3 btn-add-item">
+                                    <button class="btn btn-outline-primary ms-3 btn-add-item" @onclick="() => setUrlParams(urlParamName, urlParamValue)">
                                         <i class="fa-regular fa-plus"></i>
                                     </button>
                                 </div>
 
+                            </div>
+
+                            <div class="row">
+                                <div class="col">
+                                    @for (int i = 0; i < urlParamsName.Count; i++)
+                                    {
+                                        var index = i;
+
+                                        <div class="row mt-4">
+                                            <div class="col-3"></div>
+                                            <div class="col-8 d-flex justify-content-between">
+                                                <input type="text" class="form-control" id="urlParamsName" placeholder="Name" style="width:48%" value="@urlParamsName[index]" disabled />
+                                                <input type="text" class="form-control" id="urlParamsValue" placeholder="Value" style="width:48%" value="@urlParamsValue[index]" disabled />
+
+                                            </div>
+                                            <div class="col-1 d-flex align-items-center">
+                                                <i class="fa-solid fa-trash" style="color:red;cursor:pointer;" @onclick="() => deleteUrlParam(urlParamsName[index])"></i>
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
                             </div>
                         </div>
 
@@ -175,35 +197,41 @@
                     <div class="container-headers mt-4">
 
                         <div class="col">
-
-                            <div class="row mt-2">
-                                <div class="col-3">
-                                    <label for="headers" class="form-label">Headers</label>
-                                </div>
-                                <div class="col-8">
-                                    <input type="text" class="form-control" id="headers" />
-                                </div>
-                                <div class="col-1 d-flex align-items-center">
-                                    <button class="btn btn-outline-primary ms-3 btn-add-item">
-                                        <i class="fa-regular fa-plus"></i>
-                                    </button>
-                                </div>
-                            </div>
-
                             <div class="row mt-4">
 
                                 <div class="col-3">
                                     <label for="headerParams" class="form-label">Header params</label>
                                 </div>
-                                <div class="col-8">
-                                    <input type="text" class="form-control" id="headerParams" />
+                                <div class="col-8 d-flex justify-content-between">
+                                    <input type="text" class="form-control" id="headerParams" @bind="headerParamName" placeholder="Name" style="width:48%" />
+                                    <input type="text" class="form-control" id="headerParams" @bind="headerParamValue" placeholder="Value" style="width:48%" />
                                 </div>
                                 <div class="col-1 d-flex align-items-center">
-                                    <button class="btn btn-outline-primary ms-3 btn-add-item">
+                                    <button class="btn btn-outline-primary ms-3 btn-add-item" @onclick="() => setHeaderParams(headerParamName, headerParamValue)">
                                         <i class="fa-regular fa-plus"></i>
                                     </button>
                                 </div>
 
+                            </div>
+                            <div class="row">
+                                <div class="col">
+                                    @for (int i = 0; i < headerParamsName.Count; i++)
+                                    {
+                                        var index = i;
+
+                                        <div class="row mt-4">
+                                            <div class="col-3"></div>
+                                            <div class="col-8 d-flex justify-content-between">
+                                                <input type="text" class="form-control" id="headerParams" placeholder="Name" style="width:48%" value="@headerParamsName[i]" disabled/>
+                                                <input type="text" class="form-control" id="headerParams" placeholder="Value" style="width:48%" value="@headerParamsValue[i]" disabled />
+                                                
+                                            </div>
+                                            <div class="col-1 d-flex align-items-center">
+                                                <i class="fa-solid fa-trash" style="color:red;cursor:pointer;" @onclick="() => deleteHeaderParam(headerParamsName[index])"></i>
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
                             </div>
                         </div>
 
@@ -219,12 +247,12 @@
                                 </div>
                                 <div class="col-8">
                                     <div class="form-floating">
-                                        <textarea class="form-control" placeholder="Leave a comment here" id="floatingTextarea2" style="height: 100px"></textarea>
+                                        <textarea class="form-control" placeholder="Leave a comment here" id="floatingTextarea2" style="height: 300px" @bind="body"></textarea>
                                         <label for="floatingTextarea2"></label>
                                     </div>
                                 </div>
                                 <div class="col-1 d-flex align-items-center">
-                                    <button class="btn btn-outline-primary ms-3 btn-add-item">
+                                    <button class="btn btn-outline-primary ms-3 btn-add-item" @onclick="() => displayPreview()">
                                         <i class="fa-regular fa-plus"></i>
                                     </button>
                                 </div>
@@ -235,15 +263,37 @@
                                 <div class="col-3">
                                     <label for="bodyParams" class="form-label">Body params</label>
                                 </div>
-                                <div class="col-8">
-                                    <input type="text" class="form-control" id="bodyParams" />
+                                <div class="col-8 d-flex justify-content-between">
+                                    <input type="text" class="form-control" id="bodyParams" @bind="bodyParamName" style="width:48%" placeholder="Name"/>
+                                    <input type="text" class="form-control" id="bodyParams" @bind="bodyParamValue" style="width:48%" placeholder="Value" />
                                 </div>
                                 <div class="col-1 d-flex align-items-center">
-                                    <button class="btn btn-outline-primary ms-3 btn-add-item">
+                                    <button class="btn btn-outline-primary ms-3 btn-add-item" @onclick="() => setBodyParams(bodyParamName, bodyParamValue)">
                                         <i class="fa-regular fa-plus"></i>
                                     </button>
                                 </div>
 
+                            </div>
+
+                            <div class="row">
+                                <div class="col">
+                                    @for (int i = 0; i < bodyParamsName.Count; i++)
+                                    {
+                                        var index = i;
+
+                                        <div class="row mt-4">
+                                            <div class="col-3"></div>
+                                            <div class="col-8 d-flex justify-content-between">
+                                                <input type="text" class="form-control" id="bodyParams" placeholder="Name" style="width:48%" value="@bodyParamsName[index]" disabled />
+                                                <input type="text" class="form-control" id="bodyParams" placeholder="Value" style="width:48%" value="@bodyParamsValue[index]" disabled />
+
+                                            </div>
+                                            <div class="col-1 d-flex align-items-center">
+                                                <i class="fa-solid fa-trash" style="color:red;cursor:pointer;" @onclick="() => deleteBodyParam(bodyParamsName[index])"></i>
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
                             </div>
 
                         </div>
@@ -258,21 +308,20 @@
 
         </div>
 
-        <div class=" col-5">
-            <h1>Preview</h1>
+        <div class=" col-5 p-3">
+            <h3>Preview</h3>
 
             <div class="row d-flex justify-content-center">
                 <div class="col-10">
-                    <div class="form-floating">
-                        <textarea class="form-control" placeholder="Leave a comment here" id="floatingTextarea2" style="height: 500px"></textarea>
-                        <label for="floatingTextarea2"></label>
+                    <div class="form-floating" style="height: 500px;border: 1px solid black;    overflow: auto;">
+                        <p>@ConvertToMarkupString(preview)</p>
                     </div>
                 </div>
             </div>
 
             <div class="row d-flex justify-content-center mt-4">
                 <div class="col-10 d-flex justify-content-center">
-                    <button class="btn btn-outline-primary ms-3">
+                    <button class="btn btn-outline-primary ms-3" @onclick="TestApi">
                         Test API
                     </button>
                     <button class="btn btn-outline-success ms-3">
@@ -294,5 +343,218 @@
  
 
 @code {
+
+    API? data = null;
+    List<APIType>? apiTypes = null;
+    APIType apiTypeSelected = new();
+    List<HTTPMethods>? httpMethods = null;
+
+    string? httpMethodSelected = null;
+
+    string? url = null;
+    string? urlParamName = null;
+    string? urlParamValue = null;
+    List<string> urlParamsName = new();
+    List<string> urlParamsValue = new();
+
+    List<string> headers = new();
+    List<string> headerParamsName = new();
+    List<string> headerParamsValue = new();
+    string? headerParamName = null;
+    string? headerParamValue = null;
+
+    string? body = null;
+    List<string> bodyParamsName = new();
+    List<string> bodyParamsValue = new();
+    string? bodyParamName = null;
+    string? bodyParamValue = null;
+
+    string preview = string.Empty;
+    string bodyJson = string.Empty;
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        apiTypes = await _userService.GetTypesAPI();
+        httpMethods = await _userService.GetHttpMethods();
+    }
+
+    void TestApi()
+    {
+        API apiData = new();
+        apiData.ApiTypeId = apiTypeSelected.Id;
+        apiData.APIType = apiTypeSelected;
+
+        Configuration configuration = new();
+
+
+        URL url = new();
+
+
+        Body body = new();
+
+        ICollection<Header> header = new();
+
+    }
+
+    private void SetApiType(ChangeEventArgs args)
+    {
+        apiTypeSelected = apiTypes?.FirstOrDefault(x => x.Name == args?.Value?.ToString());
+    }
+
+
+    void setUrlParams(string name, string value)
+    {
+        if (!string.IsNullOrEmpty(name) && !string.IsNullOrEmpty(value))
+        {
+            urlParamsName.Add(name);
+            urlParamsValue.Add(value);
+            urlParamName = string.Empty;
+            urlParamValue = string.Empty;
+        }
+        displayPreview();
+    }
+
+    void deleteUrlParam(string name)
+    {
+        int index = urlParamsName.FindIndex(header => header == name);
+        if (index != -1)
+        {
+            urlParamsName.RemoveAt(index);
+            urlParamsValue.RemoveAt(index);
+        }
+        displayPreview();
+    }
+
+    void setHeaderParams(string name, string value)
+    {
+        if (!string.IsNullOrEmpty(name) && !string.IsNullOrEmpty(value))
+        {
+            headerParamsName.Add(name);
+            headerParamsValue.Add(value);
+            headerParamName = string.Empty;
+            headerParamValue = string.Empty;
+        }
+        displayPreview();
+    }
+
+    void deleteHeaderParam(string name)
+    {
+        int index = headerParamsName.FindIndex(header => header == name);
+        if (index != -1)
+        {
+            headerParamsName.RemoveAt(index);
+            headerParamsValue.RemoveAt(index);
+        }
+        displayPreview();
+    }
+
+    void setBodyParams(string name, string value)
+    {
+        if (!string.IsNullOrEmpty(name) && !string.IsNullOrEmpty(value))
+        {
+            bodyParamsName.Add(name);
+            bodyParamsValue.Add(value);
+            bodyParamName = string.Empty;
+            bodyParamValue = string.Empty;
+        }
+        displayPreview();
+    }
+
+    void deleteBodyParam(string name)
+    {
+        int index = urlParamsName.FindIndex(header => header == name);
+        if (index != -1)
+        {
+            bodyParamsName.RemoveAt(index);
+            bodyParamsValue.RemoveAt(index);
+        }
+        displayPreview();
+    }
+
+    void displayPreview()
+    {
+        preview = "<b>curl</b>";
+
+        for (int i = 0; i < headerParamsName.Count; i++)
+        {
+            preview += $" <b>-H</b> {headerParamsName[i]} : {headerParamsValue[i]}<br>";
+        }
+
+        if (httpMethodSelected != null)
+        {
+            preview += $" <b>-X</b>{httpMethodSelected}<br>";
+        }
+
+        if (url != null)
+        {
+            preview += $" {url}<br>";
+
+            // if (urlParamsName.Count > 0 && urlParamsValue.Count > 0)
+            // {
+            //     preview += "?";
+            //     for (int i = 0; i < urlParamsName.Count; i++)
+            //     {
+            //         preview += $"{urlParamsName[i]}={urlParamsValue[i]}";
+
+            //         if (i != urlParamsName.Count - 1)
+            //         {
+            //             preview += "&";
+            //         }
+            //     }
+            // }
+        }
+
+        if (body != null)
+        {
+            var formattedBody = JsonConvert.SerializeObject(body, Formatting.Indented);
+            var newString = formattedBody.Replace("\n", "<br />");
+
+
+            preview += $" <b>-d</b> {formattedJson(body)}<br>";
+        }
+    }
+
+    private void HandleHTTPMethodChange(ChangeEventArgs args)
+    {
+        httpMethodSelected = args?.Value?.ToString();
+    }
+
+    MarkupString ConvertToMarkupString(string text)
+    {
+        return new MarkupString(text);
+    }
+
+    private string formattedJson(string text)
+    {
+        string jsonFormatted = "";
+        int indentationLevel = 0;
+
+        for (int i = 0; i < text.Length; i++)
+        {
+            char currentChar = text[i];
+            char nextChar = i + 1 < text.Length ? text[i + 1] : '\0';
+
+            jsonFormatted += currentChar;
+            if (currentChar == '{' || currentChar == '[')
+            {
+                indentationLevel++;
+                jsonFormatted += "<br>" + new string('\u00A0', indentationLevel * 2);
+            }
+            else if (currentChar == '}' || currentChar == ']')
+            {
+                indentationLevel--;
+                jsonFormatted += "<br>" + new string('\u00A0', indentationLevel * 2);
+            }
+            else if (currentChar == ',')
+            {
+                jsonFormatted += "<br>" + new string('\u00A0', indentationLevel * 2);
+            }
+        }
+
+        return jsonFormatted;
+
+
+    }
 
 }
