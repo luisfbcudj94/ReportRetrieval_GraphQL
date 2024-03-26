@@ -349,7 +349,7 @@
     APIType apiTypeSelected = new();
     List<HTTPMethods>? httpMethods = null;
 
-    string? httpMethodSelected = null;
+    HTTPMethods? httpMethodSelected = null;
 
     string? url = null;
     string? urlParamName = null;
@@ -381,19 +381,127 @@
 
     void TestApi()
     {
+        #region Create API model
+
         API apiData = new();
-        apiData.ApiTypeId = apiTypeSelected.Id;
+        apiData.ApiTypeId = apiTypeSelected?.Id;
         apiData.APIType = apiTypeSelected;
 
-        Configuration configuration = new();
+        #endregion
 
 
-        URL url = new();
+        #region Create URL model
 
+        URL urlData = new();
+        urlData.Value = this?.url;
+        urlData.HTTPMethodId = httpMethodSelected?.Id;
+        urlData.HttpMethods = httpMethodSelected;
+
+        List<Tag> tagsToUrl = new List<Tag>();
+
+        for (int i = 0; i < urlParamsName.Count; i++)
+        {
+            string paramName = urlParamsName[i];
+            string paramValue = urlParamsValue[i];
+
+            Tag tag = new Tag
+            {
+                Name = paramName,
+                Value = paramValue 
+            };
+            tagsToUrl.Add(tag);
+        }
+
+        List<URLTag> urlTag = new List<URLTag>();
+
+        foreach (var tag in tagsToUrl)
+        {
+            URLTag urlTagItem = new URLTag
+                {
+                    Tags = tag
+                };
+            urlTag.Add(urlTagItem);
+        }
+
+        urlData.URLTag = urlTag;
+
+        #endregion
+
+
+        #region Create BODY model
 
         Body body = new();
+        body.Value = this?.body;
 
-        ICollection<Header> header = new();
+        List<Tag> tagsToBody = new List<Tag>();
+
+        for (int i = 0; i < bodyParamsName.Count; i++)
+        {
+            string paramName = bodyParamsName[i];
+            string paramValue = bodyParamsValue[i];
+
+            Tag tag = new Tag
+                {
+                    Name = paramName,
+                    Value = paramValue
+                };
+            tagsToBody.Add(tag);
+        }
+
+        List<BodyTag> bodyTag = new List<BodyTag>();
+
+        foreach (var tag in tagsToBody)
+        {
+            BodyTag bodyTagItem = new BodyTag
+                {
+                    Tag = tag
+                };
+            bodyTag.Add(bodyTagItem);
+        }
+
+        body.BodyTag = bodyTag;
+
+        #endregion
+
+
+        #region Create header
+
+        FrontEnd_GraphQL.Application.Models.SetApis.Configuration configuration = new();
+        configuration.Header = new List<Header>();
+
+        Header headers = new Header();
+
+        for (int i = 0; i < headerParamsName.Count; i++)
+        {
+            string paramName = headerParamsName[i];
+            string paramValue = headerParamsValue[i];
+
+            Tag tag = new Tag
+                {
+                    Name = paramName,
+                    Value = paramValue
+                };
+
+            HeaderTag headerTag = new HeaderTag
+            {
+                    Tag = tag
+            };
+
+            headers.HeaderTag = headerTag;
+            configuration.Header.Add(headers);
+        }
+
+        #endregion
+
+
+        #region Model completed
+
+        configuration.URL = urlData;
+        configuration.Body = body;
+
+        apiData.Configuration = configuration;
+
+        #endregion
 
     }
 
@@ -483,7 +591,7 @@
 
         if (httpMethodSelected != null)
         {
-            preview += $" <b>-X</b>{httpMethodSelected}<br>";
+            preview += $" <b>-X</b>{httpMethodSelected.Name}<br>";
         }
 
         if (url != null)
@@ -517,7 +625,7 @@
 
     private void HandleHTTPMethodChange(ChangeEventArgs args)
     {
-        httpMethodSelected = args?.Value?.ToString();
+        httpMethodSelected = httpMethods?.FirstOrDefault(x => x.Name == args?.Value?.ToString());
     }
 
     MarkupString ConvertToMarkupString(string text)
