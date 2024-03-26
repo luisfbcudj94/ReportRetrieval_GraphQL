@@ -10,6 +10,7 @@
 
 
 @inject ISetApisService _userService;
+@inject IBuildRequestService _buildRequestService;
 
 
 
@@ -313,8 +314,18 @@
 
             <div class="row d-flex justify-content-center">
                 <div class="col-10">
-                    <div class="form-floating" style="height: 500px;border: 1px solid black;    overflow: auto;">
+                    <h5>Request</h5>
+                    <div class="form-floating p-2" style="height: 300px;border: 1px solid black;    overflow: auto;">
                         <p>@ConvertToMarkupString(preview)</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row d-flex justify-content-center">
+                <div class="col-10">
+                    <h5>Response</h5>
+                    <div class="form-floating p-2" style="height: 300px;border: 1px solid black;    overflow: auto;">
+                        <p>@ConvertToMarkupString(@formattedJson(responseAPI))</p>
                     </div>
                 </div>
             </div>
@@ -372,6 +383,8 @@
     string preview = string.Empty;
     string bodyJson = string.Empty;
 
+    string responseAPI = string.Empty;
+
 
     protected override async Task OnInitializedAsync()
     {
@@ -379,7 +392,7 @@
         httpMethods = await _userService.GetHttpMethods();
     }
 
-    void TestApi()
+    private async Task TestApi()
     {
         #region Create API model
 
@@ -502,6 +515,8 @@
         apiData.Configuration = configuration;
 
         #endregion
+
+        responseAPI = await _buildRequestService.CreateRequest(apiData);
 
     }
 
