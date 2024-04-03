@@ -22,6 +22,13 @@ namespace FrontEnd_GraphQL.Application.Services
             return result;
         }
 
+        public async Task<List<API>> GetApis()
+        {
+            var result = await _http.GetFromJsonAsync<List<API>>("https://localhost:7116/api/API");
+
+            return result;
+        }
+
         public async Task<List<HTTPMethods>> GetHttpMethods()
         {
             var result = await _http.GetFromJsonAsync<List<HTTPMethods>>("https://localhost:7116/api/HTTPMethod");

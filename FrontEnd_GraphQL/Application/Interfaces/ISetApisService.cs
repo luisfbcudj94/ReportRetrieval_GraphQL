@@ -9,5 +9,6 @@ namespace FrontEnd_GraphQL.Application.Interfaces
 
         Task<List<APIType>> GetTypesAPI();
         Task<List<HTTPMethods>> GetHttpMethods();
+        Task<List<API>> GetApis();
     }
 }

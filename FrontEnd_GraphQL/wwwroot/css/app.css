@@ -224,3 +224,9 @@ code {
     align-items: center;
     justify-content: center;
 }
+
+.prevent-overflowing {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis
+}
